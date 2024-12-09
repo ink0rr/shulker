@@ -1,4 +1,5 @@
 export * from "./active_dimensions.js";
+export * from "./dynamic_property_manager.js";
 export * from "./equipment.js";
 export * from "./interval.js";
 export * from "./is_active_chunk.js";
