@@ -7,10 +7,12 @@ interface BaseProperty {
   type: string;
   lang?: RawMessage;
 }
+
 export interface PropertyBoolean extends BaseProperty {
   type: "boolean";
   default: boolean;
 }
+
 export interface PropertyNumber extends BaseProperty {
   type: "number";
   default: number;
@@ -18,31 +20,40 @@ export interface PropertyNumber extends BaseProperty {
   max: number;
   step: number;
 }
+
 export interface PropertyEnum<T extends string = string> extends BaseProperty {
   type: "enum";
   default: T;
   values: T[];
 }
+
 type UnionProperty = PropertyBoolean | PropertyNumber | PropertyEnum<string>;
-type Properties = {
-  [key: string]: UnionProperty;
-};
+type Properties = Record<string, UnionProperty>;
 
 type DynamicPropertyManagerCallbackArgs<T> = {
   holder: SetableProperty;
   oldValue: T;
   newValue: T;
 };
+
 type DynamicPropertyManagerCallback<T> = (args: DynamicPropertyManagerCallbackArgs<T>) => void;
 
 export type DynamicPropertyManagerArgs<P extends Properties> = {
   properties: P;
   title?: RawMessage;
 };
+
+type PropertyValue<P extends UnionProperty> = P extends PropertyEnum<infer S>
+  ? S
+  : P extends PropertyBoolean
+    ? boolean
+    : number;
+
 export class DynamicPropertyManager<P extends Properties> {
   #properties: P;
   #title?: RawMessage;
-  #callbacks: Partial<Record<keyof P, Function[]>> = {};
+  #callbacks: Map<keyof P, DynamicPropertyManagerCallback<PropertyValue<P[keyof P]>>[]> = new Map();
+
   constructor({ properties, title }: DynamicPropertyManagerArgs<P>) {
     this.#properties = properties;
     this.#title = title;
@@ -51,103 +62,80 @@ export class DynamicPropertyManager<P extends Properties> {
   private resolveType<V>(value: unknown, property: UnionProperty): value is V {
     if (property.type === "boolean") return typeof value === "boolean";
     if (property.type === "number") return typeof value === "number";
-    if (property.type === "enum")
-      return typeof value === "string" && property.values.includes(value as V & string);
+    if (property.type === "enum") return typeof value === "string" && property.values.includes(value as V & string);
     return false;
   }
 
-  get<
-    K extends keyof P & string,
-    V extends P[K] extends PropertyEnum<infer S>
-      ? S
-      : P[K]["default"] extends boolean
-        ? boolean
-        : number,
-  >(holder: SetableProperty, key: K): V {
+  private default<K extends keyof P & string>(key: K): PropertyValue<P[K]> {
+    return this.#properties[key].default as PropertyValue<P[K]>;
+  }
+
+  get<K extends keyof P & string>(holder: SetableProperty, key: K): PropertyValue<P[K]> {
     const property = this.#properties[key];
     const value = holder.getDynamicProperty(key);
-    return this.resolveType(value, property) ? (value as V) : (property.default as V);
+    return this.resolveType(value, property) ? (value as PropertyValue<P[K]>) : this.default(key);
   }
-  set<
-    K extends keyof P & string,
-    V extends P[K] extends PropertyEnum<infer S>
-      ? S
-      : P[K]["default"] extends boolean
-        ? boolean
-        : number,
-  >(holder: SetableProperty, key: K, value?: V): void {
+
+  set<K extends keyof P & string>(holder: SetableProperty, key: K, value?: PropertyValue<P[K]>): void {
     const oldValue = this.get(holder, key);
     if (oldValue === value) return;
 
-    this.#callbacks[key]?.forEach((callback) => {
-      callback({ holder, oldValue, newValue: value });
+    this.#callbacks.get(key)?.forEach((callback) => {
+      callback({ holder, oldValue, newValue: value ?? this.default(key) });
     });
 
     holder.setDynamicProperty(key, value as string | number | boolean | undefined);
   }
+
   async show(holder: SetableProperty, player: Player) {
     const form = new ModalFormData().title(this.#title ?? "Settings");
-    for (const [k, v] of Object.entries(this.#properties)) {
+    const entries = Object.entries(this.#properties);
+
+    for (const [k, v] of entries) {
       const currentValue = this.get(holder, k as keyof P & string);
       if (v.type === "boolean") {
-        form.toggle(v.lang ?? k, currentValue as boolean);
-      }
-      if (v.type === "number") {
-        form.slider(v.lang ?? k, v.min, v.max, v.step, currentValue as number);
-      }
-      if (v.type === "enum") {
-        form.dropdown(v.lang ?? k, v.values, v.values.indexOf(currentValue as string));
+        form.toggle(v.lang ?? {translate: k}, currentValue as boolean);
+      } else if (v.type === "number") {
+        form.slider(v.lang ?? {translate: k}, v.min, v.max, v.step, currentValue as number);
+      } else if (v.type === "enum") {
+        form.dropdown(v.lang ?? {translate: k}, v.values, v.values.indexOf(currentValue as string));
       }
     }
+
     const { canceled, formValues } = await form.show(player);
     if (canceled || !formValues) return;
 
-    let index = 0;
-    for (const [k, v] of Object.entries(this.#properties)) {
+    entries.forEach(([k, v], index) => {
       const formValue = formValues[index];
       if (v.type === "boolean") {
         this.set(holder, k, formValue as never);
-      }
-      if (v.type === "number") {
+      } else if (v.type === "number") {
         this.set(holder, k, formValue as never);
-      }
-      if (v.type === "enum") {
+      } else if (v.type === "enum") {
         this.set(holder, k, v.values[formValue as number] as never);
       }
-      index++;
-    }
+    });
   }
-  subscribe<
-    K extends keyof P & string,
-    V extends P[K] extends PropertyEnum<infer S>
-      ? S
-      : P[K]["default"] extends boolean
-        ? boolean
-        : number,
-  >(key: K, callback: DynamicPropertyManagerCallback<V>) {
-    if (!this.#callbacks[key]) {
-      this.#callbacks[key] = [];
+
+  subscribe<K extends keyof P & string>(key: K, callback: DynamicPropertyManagerCallback<PropertyValue<P[K]>>) {
+    if (!this.#callbacks.has(key)) {
+      this.#callbacks.set(key, []);
     }
-    this.#callbacks[key].push(callback);
+    this.#callbacks.get(key)!.push(callback);
   }
-  [Symbol.iterator]<
-    K extends keyof P & string,
-    V extends P[K] extends PropertyEnum<infer S>
-      ? S
-      : P[K]["default"] extends boolean
-        ? boolean
-        : number,
-  >(): Iterator<[K, V]> {
+
+  [Symbol.iterator](): Iterator<[keyof P & string, PropertyValue<P[keyof P]>]> {
     const properties = this.#properties;
-    const keys = Object.keys(properties) as K[];
+    const keys = Object.keys(properties) as (keyof P & string)[];
     let index = 0;
+
     return {
       next: () => {
         if (index < keys.length) {
           const key = keys[index];
-          const value = properties[key].default;
+          const value = this.default(key);
           index++;
-          return { value: [key, value as V], done: false };
+          return { value: [key, value as PropertyValue<P[keyof P]>], done: false };
         } else {
           return { value: undefined, done: true };
         }
