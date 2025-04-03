@@ -64,91 +64,6 @@ declare namespace ShulkerInternal {
   type EntityTypes = UnionString<`${vanilla.MinecraftEntityTypes}`>;
   type ItemTypes = UnionString<`${vanilla.MinecraftItemTypes}`>;
 
-  // Components
-  type BlockComponents = {
-    "minecraft:fluidContainer": server.BlockFluidContainerComponent;
-    "minecraft:inventory": server.BlockInventoryComponent;
-    "minecraft:piston": server.BlockPistonComponent;
-    "minecraft:record_player": server.BlockRecordPlayerComponent;
-    "minecraft:sign": server.BlockSignComponent;
-  };
-  type EntityComponents = {
-    "minecraft:addrider": server.EntityAddRiderComponent;
-    "minecraft:ageable": server.EntityAgeableComponent;
-    "minecraft:breathable": server.EntityBreathableComponent;
-    "minecraft:can_climb": server.EntityCanClimbComponent;
-    "minecraft:can_fly": server.EntityCanFlyComponent;
-    "minecraft:can_power_jump": server.EntityCanPowerJumpComponent;
-    "minecraft:color": server.EntityColorComponent;
-    "minecraft:color2": server.EntityColor2Component;
-    "minecraft:equippable": server.EntityEquippableComponent;
-    "minecraft:fire_immune": server.EntityFireImmuneComponent;
-    "minecraft:floats_in_liquid": server.EntityFloatsInLiquidComponent;
-    "minecraft:flying_speed": server.EntityFlyingSpeedComponent;
-    "minecraft:friction_modifier": server.EntityFrictionModifierComponent;
-    "minecraft:ground_offset": server.EntityGroundOffsetComponent;
-    "minecraft:healable": server.EntityHealableComponent;
-    "minecraft:health": server.EntityHealthComponent;
-    "minecraft:inventory": server.EntityInventoryComponent;
-    "minecraft:is_baby": server.EntityIsBabyComponent;
-    "minecraft:is_charged": server.EntityIsChargedComponent;
-    "minecraft:is_chested": server.EntityIsChestedComponent;
-    "minecraft:is_dyeable": server.EntityIsDyeableComponent;
-    "minecraft:is_hidden_when_invisible": server.EntityIsHiddenWhenInvisibleComponent;
-    "minecraft:is_ignited": server.EntityIsIgnitedComponent;
-    "minecraft:is_illager_captain": server.EntityIsIllagerCaptainComponent;
-    "minecraft:is_saddled": server.EntityIsSaddledComponent;
-    "minecraft:is_shaking": server.EntityIsShakingComponent;
-    "minecraft:is_sheared": server.EntityIsShearedComponent;
-    "minecraft:is_stackable": server.EntityIsStackableComponent;
-    "minecraft:is_stunned": server.EntityIsStunnedComponent;
-    "minecraft:is_tamed": server.EntityIsTamedComponent;
-    "minecraft:item": server.EntityItemComponent;
-    "minecraft:lava_movement": server.EntityLavaMovementComponent;
-    "minecraft:leashable": server.EntityLeashableComponent;
-    "minecraft:mark_variant": server.EntityMarkVariantComponent;
-    "minecraft:movement": server.EntityMovementComponent;
-    "minecraft:movement.amphibious": server.EntityMovementAmphibiousComponent;
-    "minecraft:movement.basic": server.EntityMovementBasicComponent;
-    "minecraft:movement.fly": server.EntityMovementFlyComponent;
-    "minecraft:movement.generic": server.EntityMovementGenericComponent;
-    "minecraft:movement.glide": server.EntityMovementGlideComponent;
-    "minecraft:movement.hover": server.EntityMovementHoverComponent;
-    "minecraft:movement.jump": server.EntityMovementJumpComponent;
-    "minecraft:movement.skip": server.EntityMovementSkipComponent;
-    "minecraft:movement.sway": server.EntityMovementSwayComponent;
-    "minecraft:navigation.climb": server.EntityNavigationClimbComponent;
-    "minecraft:navigation.float": server.EntityNavigationFloatComponent;
-    "minecraft:navigation.fly": server.EntityNavigationFlyComponent;
-    "minecraft:navigation.generic": server.EntityNavigationGenericComponent;
-    "minecraft:navigation.hover": server.EntityNavigationHoverComponent;
-    "minecraft:navigation.walk": server.EntityNavigationWalkComponent;
-    "minecraft:onfire": server.EntityOnFireComponent;
-    "minecraft:projectile": server.EntityProjectileComponent;
-    "minecraft:push_through": server.EntityPushThroughComponent;
-    "minecraft:rideable": server.EntityRideableComponent;
-    "minecraft:riding": server.EntityRidingComponent;
-    "minecraft:scale": server.EntityScaleComponent;
-    "minecraft:skin_id": server.EntitySkinIdComponent;
-    "minecraft:strength": server.EntityStrengthComponent;
-    "minecraft:tameable": server.EntityTameableComponent;
-    "minecraft:tamemount": server.EntityTameMountComponent;
-    "minecraft:type_family": server.EntityTypeFamilyComponent;
-    "minecraft:underwater_movement": server.EntityUnderwaterMovementComponent;
-    "minecraft:variant": server.EntityVariantComponent;
-    "minecraft:wants_jockey": server.EntityWantsJockeyComponent;
-  };
-  type ItemComponents = {
-    "minecraft:compostable": server.ItemCompostableComponent;
-    "minecraft:cooldown": server.ItemCooldownComponent;
-    "minecraft:durability": server.ItemDurabilityComponent;
-    "minecraft:enchantable": server.ItemEnchantableComponent;
-    "minecraft:food": server.ItemFoodComponent;
-  };
-  type PlayerComponents = EntityComponents & {
-    "minecraft:cursor_inventory": server.PlayerCursorInventoryComponent;
-  };
-
   // Blocks
   interface BlockEventOptions extends server.BlockEventOptions {
     blockTypes?: BlockTypes[];
@@ -186,10 +101,14 @@ declare namespace ShulkerInternal {
 declare module "@minecraft/server" {
   interface Block {
     getTags(): ShulkerInternal.BlockTags[];
-    getComponent<K extends keyof ShulkerInternal.BlockComponents>(
-      component: K,
-    ): ShulkerInternal.BlockComponents[K];
+    getComponent<K extends keyof BlockComponentTypeMap>(component: K): BlockComponentTypeMap[K];
     hasTag(tag: ShulkerInternal.BlockTags): boolean;
+    matches<T extends keyof vanilla.BlockStateMapping>(
+      blockName: T,
+      states?: vanilla.BlockStateMapping[T],
+    ): boolean;
+  }
+  interface BlockPermutation {
     matches<T extends keyof vanilla.BlockStateMapping>(
       blockName: T,
       states?: vanilla.BlockStateMapping[T],
@@ -274,10 +193,8 @@ declare module "@minecraft/server" {
       animationName: bedrockts.AnimationIdentifier,
       options?: PlayAnimationOptions,
     ): void;
-    getComponent<K extends keyof ShulkerInternal.EntityComponents>(
-      component: K,
-    ): ShulkerInternal.EntityComponents[K];
-    hasComponent<K extends keyof ShulkerInternal.EntityComponents>(component: K): boolean;
+    getComponent<K extends keyof EntityComponentTypeMap>(component: K): EntityComponentTypeMap[K];
+    hasComponent<K extends keyof EntityComponentTypeMap>(component: K): boolean;
     addEffect(
       effectType: ShulkerInternal.EffectTypes,
       duration: number,
@@ -350,11 +267,9 @@ declare module "@minecraft/server" {
   }
 
   interface ItemStack {
-    getComponent<K extends keyof ShulkerInternal.ItemComponents>(
-      component: K,
-    ): ShulkerInternal.ItemComponents[K];
+    getComponent<K extends keyof ItemComponentTypeMap>(component: K): ItemComponentTypeMap[K];
     getTags(): bedrockts.ItemTag[];
-    hasComponent<K extends keyof ShulkerInternal.ItemComponents>(component: K): boolean;
+    hasComponent<K extends keyof ItemComponentTypeMap>(component: K): boolean;
     hasTag(tag: bedrockts.ItemTag): boolean;
     matches<T extends keyof vanilla.BlockStateMapping>(
       blockName: T,
@@ -369,10 +284,6 @@ declare module "@minecraft/server" {
   }
 
   interface Player {
-    getComponent<K extends keyof ShulkerInternal.PlayerComponents>(
-      component: K,
-    ): ShulkerInternal.PlayerComponents[K];
-    hasComponent<K extends keyof ShulkerInternal.PlayerComponents>(component: K): boolean;
     getItemCooldown(cooldownCategory: ShulkerInternal.CooldownCategoryTypes): number;
     startItemCooldown(
       cooldownCategory: ShulkerInternal.CooldownCategoryTypes,
