@@ -1,6 +1,7 @@
 import { Vector2 } from "@minecraft/server";
+import { clampNumber } from "./utils.js";
 
-export class Vec2 implements Vector2 {
+export class Vec2 {
   x: number;
   y: number;
 
@@ -17,162 +18,301 @@ export class Vec2 implements Vector2 {
   }
 
   /**
-   * Shorthand for writing `new Vec2(0, -1)`.
+   * Shorthand for `new Vec2(0, -1)`
    */
   static get Down() {
     return new Vec2(0, -1);
   }
   /**
-   * Shorthand for writing `new Vec2(0, 1)`.
+   * Shorthand for `new Vec2(0, 1)`
    */
   static get Up() {
     return new Vec2(0, 1);
   }
   /**
-   * Shorthand for writing `new Vec2(-1, 0)`.
+   * Shorthand for `new Vec2(-1, 0)`
    */
   static get Left() {
     return new Vec2(-1, 0);
   }
   /**
-   * Shorthand for writing `new Vec2(1, 1)`.
-   */
-  static get One() {
-    return new Vec2(1, 1);
-  }
-  /**
-   * Shorthand for writing `new Vec2(1, 0)`.
+   * Shorthand for `new Vec2(1, 0)`
    */
   static get Right() {
     return new Vec2(1, 0);
   }
   /**
-   * Shorthand for writing `new Vec2(0, 0)`.
+   * Shorthand for `new Vec2(1, 1)`
+   */
+  static get One() {
+    return new Vec2(1, 1);
+  }
+  /**
+   * Shorthand for `new Vec2(0, 0)`
    */
   static get Zero() {
     return new Vec2(0, 0);
   }
 
   /**
-   * Checks if the current vector is equal to another vector.
-   *
-   * @param other - The vector to compare against.
-   * @returns True if the vectors are equal, false otherwise.
+   * Assigns the values of the passed in vector to this vector. Returns itself.
+   */
+  assign(v: Partial<Vector2>): this {
+    if (v.x !== undefined) this.x = v.x;
+    if (v.y !== undefined) this.y = v.y;
+    return this;
+  }
+
+  /**
+   * Check the equality of two vectors
+   */
+  static equals(a: Vector2, b: Vector2): boolean {
+    return a.x === b.x && a.y === b.y;
+  }
+
+  /**
+   * Check the equality of two vectors
    */
   equals(other: Vector2): boolean {
-    return this.x === other.x && this.y === other.y;
+    return Vec2.equals(this, other);
   }
 
   /**
-   * Adds the given vector to this vector.
-   *
-   * @param other - The vector to be added.
-   * @returns A new vector that is the sum of this vector and the given vector.
+   * Add two vectors to produce a new vector
    */
-  add(other: Vector2): Vec2 {
-    return new Vec2(this.x + other.x, this.y + other.y);
+  static add(a: Vector2, b: Partial<Vector2>): Vec2 {
+    return new Vec2(a.x + (b.x ?? 0), a.y + (b.y ?? 0));
   }
 
   /**
-   * Subtracts the given vector from this vector.
-   *
-   * @param other - The vector to be subtracted.
-   * @returns A new vector that is the difference between this vector and the given vector.
+   * Add two vectors to produce a new vector
    */
-  subtract(other: Vector2): Vec2 {
-    return new Vec2(this.x - other.x, this.y - other.y);
+  add(other: Partial<Vector2>): Vec2 {
+    return Vec2.add(this, other);
   }
 
   /**
-   * Scales the vector by the given factor.
-   *
-   * @param factor - The factor by which to scale the vector.
-   * @returns A new vector that is the scaled version of the original vector.
+   * Subtract two vectors to produce a new vector
    */
-  scale(factor: number): Vec2 {
-    return new Vec2(this.x * factor, this.y * factor);
+  static subtract(a: Vector2, b: Partial<Vector2>): Vec2 {
+    return new Vec2(a.x - (b.x ?? 0), a.y - (b.y ?? 0));
   }
 
   /**
-   * Calculates the dot product between this vector and another vector.
-   *
-   * @param other - The vector to calculate the dot product with.
-   * @returns The dot product of the two vectors.
+   * Subtract two vectors to produce a new vector
+   */
+  subtract(other: Partial<Vector2>): Vec2 {
+    return Vec2.subtract(this, other);
+  }
+
+  /**
+   * Multiply all entries in a vector by a single scalar value producing a new vector
+   */
+  static scale(v: Vector2, scalar: number): Vec2 {
+    return new Vec2(v.x * scalar, v.y * scalar);
+  }
+
+  /**
+   * Multiply all entries in a vector by a single scalar value producing a new vector
+   */
+  scale(scalar: number): Vec2 {
+    return Vec2.scale(this, scalar);
+  }
+
+  /**
+   * Calculate the dot product of two vectors
+   */
+  static dot(a: Vector2, b: Vector2): number {
+    return a.x * b.x + a.y * b.y;
+  }
+
+  /**
+   * Calculate the dot product of two vectors
    */
   dot(other: Vector2): number {
-    return this.x * other.x + this.y * other.y;
+    return Vec2.dot(this, other);
   }
 
-  cross(other: Vector2): Vec2 {
-    return new Vec2(this.y * other.x - this.x * other.y, this.x * other.y - this.y * other.x);
-  }
   /**
-   * Calculates the magnitude of the vector.
-   *
-   * @returns The magnitude of the vector.
+   * Calculate the cross product of two vectors. Returns a new vector.
+   */
+  static cross(a: Vector2, b: Vector2): number {
+    return a.x * b.y - a.y * b.x;
+  }
+
+  /**
+   * Calculate the cross product of two vectors. Returns a new vector.
+   */
+  cross(other: Vector2): number {
+    return Vec2.cross(this, other);
+  }
+
+  /**
+   * Element-wise multiplication of two vectors together.
+   * Not to be confused with {@link Vec2.dot} product or {@link Vec2.cross} product
+   */
+  static multiply(a: Vector2, b: Vector2): Vec2 {
+    return new Vec2(a.x * b.x, a.y * b.y);
+  }
+
+  /**
+   * Element-wise multiplication of two vectors together.
+   * Not to be confused with {@link Vec2.dot} product or {@link Vec2.cross} product
+   */
+  multiply(other: Vector2): Vec2 {
+    return Vec2.multiply(this, other);
+  }
+
+  /**
+   * The magnitude of a vector
+   */
+  static magnitude(v: Vector2): number {
+    return Math.sqrt(v.x ** 2 + v.y ** 2);
+  }
+
+  /**
+   * The magnitude of a vector
    */
   magnitude(): number {
-    return Math.sqrt(this.dot(this));
+    return Vec2.magnitude(this);
   }
 
   /**
-   * Normalizes the vector by scaling it to have a magnitude of 1.
-   *
-   * @returns The normalized vector.
+   * Calculate the distance between two vectors
    */
-  normalize(): Vec2 {
-    return this.scale(1 / this.magnitude());
+  static distance(a: Vector2, b: Vector2): number {
+    return Vec2.subtract(a, b).magnitude();
   }
 
   /**
-   * Calculates the distance between this vector and the other vector.
-   *
-   * @param other - The other vector to calculate the distance to.
-   * @returns The distance between the two vectors.
+   * Calculate the distance between two vectors
    */
   distanceTo(other: Vector2): number {
-    return this.subtract(other).magnitude();
+    return Vec2.distance(this, other);
   }
 
   /**
-   * Returns a new vector object with the floor value of each axis of the current vector.
-   *
-   * @returns A new vector object with the floor value of each axis.
+   * Normalize a vector to a unit vector
+   */
+  static normalize(v: Vector2): Vec2 {
+    return Vec2.scale(v, 1 / Vec2.magnitude(v));
+  }
+
+  /**
+   * Normalize a vector to a unit vector
+   */
+  normalize(): Vec2 {
+    return Vec2.normalize(this);
+  }
+
+  /**
+   * Floor the components of a vector to produce a new vector
+   */
+  static floor(v: Vector2): Vec2 {
+    return new Vec2(Math.floor(v.x), Math.floor(v.y));
+  }
+
+  /**
+   * Floor the components of a vector to produce a new vector
    */
   floor(): Vec2 {
-    return new Vec2(Math.floor(this.x), Math.floor(this.y));
+    return Vec2.floor(this);
   }
 
   /**
-   * Returns a new vector object with the ceil value of each axis of the current vector.
-   *
-   * @returns A new vector object with the ceil value of each axis.
+   * Ceil the components of a vector to produce a new vector
+   */
+  static ceil(v: Vector2): Vec2 {
+    return new Vec2(Math.ceil(v.x), Math.ceil(v.y));
+  }
+
+  /**
+   * Ceil the components of a vector to produce a new vector
    */
   ceil(): Vec2 {
-    return new Vec2(Math.ceil(this.x), Math.ceil(this.y));
+    return Vec2.ceil(this);
   }
 
   /**
-   * Returns a new vector object with the round value of each axis of the current vector.
-   *
-   * @returns A new vector object with the round value of each axis.
+   * Round the components of a vector to produce a new vector
+   */
+  static round(v: Vector2): Vec2 {
+    return new Vec2(Math.round(v.x), Math.round(v.y));
+  }
+
+  /**
+   * Round the components of a vector to produce a new vector
    */
   round(): Vec2 {
-    return new Vec2(Math.round(this.x), Math.round(this.y));
+    return Vec2.round(this);
   }
 
   /**
-   * Returns a new vector object with the center value of each axis of the current vector.
-   *
-   * @returns A new vector object with the center value of each axis.
+   * Center the components of a vector to produce a new vector
    */
-  center(): Vec2 {
-    return this.floor().add(new Vec2(0.5, 0.5));
+  static center(v: Vector2): Vec2 {
+    return new Vec2(Math.floor(v.x + 0.5), Math.floor(v.y + 0.5));
   }
 
-  toString(options?: { decimals?: number; delimiter?: string }): string {
+  /**
+   * Center the components of a vector to produce a new vector
+   */
+  center(): Vec2 {
+    return Vec2.center(this);
+  }
+
+  /**
+   * Clamps the components of a vector to limits to produce a new vector
+   */
+  static clamp(v: Vector2, limits?: { min?: Partial<Vector2>; max?: Partial<Vector2> }): Vec2 {
+    return new Vec2(
+      clampNumber(
+        v.x,
+        limits?.min?.x ?? Number.MIN_SAFE_INTEGER,
+        limits?.max?.x ?? Number.MAX_SAFE_INTEGER,
+      ),
+      clampNumber(
+        v.y,
+        limits?.min?.y ?? Number.MIN_SAFE_INTEGER,
+        limits?.max?.y ?? Number.MAX_SAFE_INTEGER,
+      ),
+    );
+  }
+
+  /**
+   * Clamps the components of a vector to limits to produce a new vector
+   */
+  clamp(limits?: { min?: Partial<Vector2>; max?: Partial<Vector2> }): Vec2 {
+    return Vec2.clamp(this, limits);
+  }
+
+  /**
+   * Constructs a new vector using linear interpolation on each component from two vectors.
+   */
+  static lerp(a: Vector2, b: Vector2, t: number): Vec2 {
+    return new Vec2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+  }
+
+  /**
+   * Constructs a new vector using linear interpolation on each component from two vectors.
+   */
+  lerp(other: Vector2, t: number): Vec2 {
+    return Vec2.lerp(this, other, t);
+  }
+
+  /**
+   * Create a string representation of a vector
+   */
+  static toString(v: Vector2, options?: { decimals?: number; delimiter?: string }): string {
     const decimals = options?.decimals ?? 2;
     const delimiter = options?.delimiter ?? " ";
-    return [this.x, this.y].map((n) => n.toFixed(decimals)).join(delimiter);
+    return [v.x, v.y].map((n) => n.toFixed(decimals)).join(delimiter);
+  }
+
+  /**
+   * Create a string representation of a vector
+   */
+  toString(options?: { decimals?: number; delimiter?: string }): string {
+    return Vec2.toString(this, options);
   }
 }
