@@ -23,11 +23,11 @@ export function shootProjectile(
   } = options ?? {};
   location.y += 0.1;
 
-  const entity = shooter.dimension.spawnEntity(identifier, new Vec3(location).add(direction));
+  const entity = shooter.dimension.spawnEntity(identifier, Vec3.add(location, direction));
   const projectile = entity.getComponent("minecraft:projectile") as EntityProjectileComponent;
   projectile.owner = shooter;
 
-  let velocity = new Vec3(direction).scale(power);
+  let velocity = Vec3.scale(direction, power);
   const g = new Vec3(0, gravity, 0);
   const runId = system.runInterval(() => {
     if (!entity.isValid()) {
