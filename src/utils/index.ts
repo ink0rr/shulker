@@ -8,6 +8,7 @@ export * from "./players.js";
 export * from "./projectile.js";
 export * from "./ride.js";
 export * from "./scriptevents.js";
+export * from "./solid_block.js";
 export * from "./time.js";
 export * from "./timeout.js";
 export * from "./variable.js";
