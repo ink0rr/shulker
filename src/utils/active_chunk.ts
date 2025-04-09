@@ -1,15 +1,17 @@
-import { Vector3, world } from "@minecraft/server";
+import { Dimension, Vector3, world } from "@minecraft/server";
+import { MinecraftDimensionTypes } from "@minecraft/vanilla-data";
 
-type DimensionType = "minecraft:nether" | "minecraft:overworld" | "minecraft:the_end";
+type DimensionType = Dimension | `${MinecraftDimensionTypes}`;
 
 /**
- * Check if the location is in an active chunk.
- * @param location - The location to check.
- * @returns True if the location is in an active chunk.
+ * Returns true if the location is in an active chunk.
  */
 export function isActiveChunk(dimension: DimensionType, location: Vector3): boolean {
   try {
-    return !!world.getDimension(dimension).getBlock(location);
+    if (typeof dimension === "string") {
+      dimension = world.getDimension(dimension);
+    }
+    return !!dimension.getBlock(location);
   } catch {
     return false;
   }
