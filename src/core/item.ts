@@ -2,9 +2,12 @@ import {
   Block,
   Direction,
   Entity,
+  EntityDamageCause,
+  EntityDamageSource,
   EquipmentSlot,
   ItemStack,
   Player,
+  PlayerSoundOptions,
   Vector3,
   system,
   world,
@@ -13,7 +16,25 @@ import { getEquipment } from "../utils/equipment.js";
 import { getAllPlayers } from "../utils/players.js";
 
 export type ScriptItem = {
+  /**
+   * Identifier of the item.
+   */
   readonly identifier: string;
+  /**
+   * Sets whether the item will have shield behavior or not.
+   */
+  readonly canBlock?: boolean;
+  /**
+   * Sets the setting for the shield behavior.
+   * 
+   * @param {number} [healRatio] - The ratio from damage HP being returned to player's HP (range: 0 to 1, default: 0).
+   * @param {boolean} [knockbackPower] - The power of the knockback (default: 0).
+   * @param {EntityDamageCause[]} [blockedDamage] - The damage types that can be blocked (default: entityAttack, blockExplosion, entityExplosion, projectile, fireworks, ramAttack).
+   * @param {boolean} [blockFrontOnly] - Whether the shield can only block damage from the front (default: true).
+   * @param {string} [soundId] - The sound ID to play when the shield blocks damage (default: item.shield.block).
+   * @param {PlayerSoundOptions} [soundOptions] - The sound options to play when the shield blocks damage.
+   */
+  readonly blockOptions?: ScriptItemBlockOptions;
   /**
    * Called every tick
    */
@@ -39,6 +60,10 @@ export type ScriptItem = {
    */
   onHit?(event: ScriptItemHitEvent): void;
   /**
+   * Called when player hits an entity while having this item in any EquipmentSlot
+   */
+  onEquipHit?(event: ScriptItemHitEvent): void;
+  /**
    * Called when player kills an entity with this item
    */
   onKill?(event: ScriptItemHitEvent): void;
@@ -62,6 +87,19 @@ export type ScriptItem = {
    * Called when the item completes charging
    */
   onCompleteUse?(event: ScriptItemUseEvent): void;
+  /**
+   * Called when the item is equipped in the main hand or offhand, and the item successfully blocks incoming damage as a shield.
+   */
+  onBlock?(event: ScriptItemBlockEvent): void;
+};
+
+export type ScriptItemBlockOptions = {
+  healRatio?: number,
+  knockbackPower?: number,
+  blockedDamage?: EntityDamageCause[],
+  blockFrontOnly?: boolean,
+  soundId?: string,
+  soundOptions?: PlayerSoundOptions
 };
 
 type ScriptItemEvent = {
@@ -90,6 +128,11 @@ export type ScriptItemUseOnEvent = ScriptItemEvent & {
 
 export type ScriptItemUseEvent = ScriptItemEvent & {
   useDuration: number;
+};
+
+export type ScriptItemBlockEvent = ScriptItemEvent & {
+  damageSource: EntityDamageSource;
+  damage: number;
 };
 
 export const ScriptItem = {
@@ -158,19 +201,126 @@ export const ScriptItem = {
       });
     });
 
+    world.afterEvents.entityHurt.subscribe((event) => {
+      const { damageSource, damage, hurtEntity } = event;
+      if (
+        !hurtEntity.isValid() || 
+        !(hurtEntity instanceof Player) ||
+        !hurtEntity.isSneaking
+      ) {
+        return;
+      }
+
+      let isInFront = false;
+      // Chekcs if damage is coming in front of the player
+      if (damageSource.damagingProjectile) {
+        const projectile = damageSource.damagingProjectile;
+        const victim_body_rotation = hurtEntity.getRotation().y;
+        const entity_view_direction =
+          Math.atan2(projectile.getViewDirection().x, projectile.getViewDirection().z) * (180 / Math.PI);
+        const delta = ((entity_view_direction - victim_body_rotation + 360) % 360) - 180;
+        isInFront = delta > -120 && delta < 120;
+      }
+      else if (damageSource.damagingEntity) {
+        const victim_body_rotation = hurtEntity.getRotation().y;
+        const entity_body_rotation = damageSource.damagingEntity.getRotation().y;
+
+        // Calculate the angle to the entity
+        const delta = ((entity_body_rotation - victim_body_rotation + 360) % 360) - 180;
+        isInFront = delta > -120 && delta < 120;
+      }
+
+      const currentEquipments = []
+      currentEquipments.push(getEquipment(hurtEntity, EquipmentSlot.Mainhand));
+      currentEquipments.push(getEquipment(hurtEntity, EquipmentSlot.Offhand));
+      let appliedHealRatio = 0;
+      let appliedKnockbackPower = 0;
+      const defautBlockOptions = {
+        healRatio: 0,
+        knockbackPower: 0,
+        blockedDamage: [
+          EntityDamageCause.entityAttack,
+          EntityDamageCause.blockExplosion,
+          EntityDamageCause.entityExplosion,
+          EntityDamageCause.projectile,
+          EntityDamageCause.fireworks,
+          EntityDamageCause.ramAttack,
+        ],
+        blockFrontOnly: true,
+        soundId: "item.shield.block",
+        soundOptions: {
+          volume: 1,
+          pitch: 1,
+        }
+      }
+
+      for (let i = 0; i < currentEquipments.length; i++) {
+        const current = currentEquipments[i];
+        if (current) {
+          const item = items.get(current.typeId);
+          if (item) {
+            const blockOptions = {
+              ...defautBlockOptions,
+              ...(item.blockOptions ?? {}),
+            };
+            const isBlocked =
+              (!blockOptions.blockFrontOnly || isInFront) &&
+              blockOptions.blockedDamage.includes(damageSource.cause);
+
+            if (item.canBlock && isBlocked) {
+              appliedHealRatio = Math.max(appliedHealRatio, blockOptions.healRatio ?? 0);
+              appliedKnockbackPower = Math.max(appliedKnockbackPower, blockOptions.knockbackPower ?? 0);
+              hurtEntity.teleport(hurtEntity.location);
+              hurtEntity.playSound(blockOptions.soundId, blockOptions.soundOptions);
+              item.onBlock?.({
+                player: hurtEntity,
+                itemStack: current,
+                damageSource: damageSource,
+                damage: damage,
+              });
+            }
+          }
+        }
+      }
+
+      if (appliedHealRatio > 0) {
+        const currentValue = hurtEntity.getComponent("minecraft:health").currentValue as number;
+        const healAmount = appliedHealRatio * damage;
+        hurtEntity.getComponent("minecraft:health").setCurrentValue(currentValue + healAmount);
+      }
+      if (appliedKnockbackPower > 0) {
+        if (damageSource.damagingEntity && damageSource.damagingEntity.isValid()) {
+          const damagingEntity = damageSource.damagingEntity;
+          damagingEntity.applyKnockback(hurtEntity.getViewDirection().x, hurtEntity.getViewDirection().z, appliedKnockbackPower, 0);
+        }
+      }
+    });
+
     world.afterEvents.entityHitEntity.subscribe(({ damagingEntity, hitEntity }) => {
       if (!(damagingEntity instanceof Player)) {
         return;
       }
-      const equipment = getEquipment(damagingEntity, EquipmentSlot.Mainhand);
-      if (!equipment) {
-        return;
+      const currentEquipments = [];
+      for (const slot of equipmentSlots) {
+        currentEquipments.push(getEquipment(damagingEntity, slot));
       }
-      items.get(equipment.typeId)?.onHit?.({
-        player: damagingEntity,
-        itemStack: equipment,
-        victim: hitEntity,
-      });
+      for (let i = 0; i < equipmentSlots.length; i++) {
+        const current = currentEquipments[i];
+        if (current) {
+          items.get(current.typeId)?.onEquipHit?.({
+            player: damagingEntity,
+            itemStack: current,
+            victim: hitEntity,
+          });
+          if (equipmentSlots[i] === EquipmentSlot.Mainhand) {
+            items.get(current.typeId)?.onHit?.({
+              player: damagingEntity,
+              itemStack: current,
+              victim: hitEntity,
+            });
+          }
+        }
+      }
     });
 
     world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
