@@ -1,4 +1,5 @@
 import {
+  DefinitionModifier,
   Entity,
   EntityDamageSource,
   EntityInitializationCause,
@@ -20,6 +21,10 @@ export type ScriptEntity = {
    */
   onDie?(event: ScriptEntityDieEvent): void;
   /**
+   * Called when the entity's health changed
+   */
+  onHealthChanged?(event: ScriptEntityHealthChangedEvent): void;
+  /**
    * Called when the entity hits another entity
    */
   onHit?(event: ScriptEntityHitEvent): void;
@@ -32,13 +37,21 @@ export type ScriptEntity = {
    */
   onInteract?(event: ScriptEntityInteractEvent): void;
   /**
+   * Called when the entity loads
+   */
+  onLoad?(event: ScriptEntityEvent): void;
+  /**
+   * Called when the entity is removed
+   */
+  onRemove?(event: ScriptEntityEvent): void;
+  /**
    * Called when the entity spawns
    */
   onSpawn?(event: ScriptEntitySpawnEvent): void;
   /**
-   * Called when the entity's health changes
+   * Map of entity event ids to listen to
    */
-  onHealthChanged?(event: ScriptEntityHealthChangedEvent): void;
+  onDataDrivenTrigger?: Record<string, (event: ScriptEntityDataDrivenTriggerEvent) => void>;
 };
 
 type ScriptEntityEvent = {
@@ -47,6 +60,11 @@ type ScriptEntityEvent = {
 
 export type ScriptEntityDieEvent = ScriptEntityEvent & {
   damageSource: EntityDamageSource;
+};
+
+export type ScriptEntityHealthChangedEvent = ScriptEntityEvent & {
+  oldValue: number;
+  newValue: number;
 };
 
 export type ScriptEntityHitEvent = ScriptEntityEvent & {
@@ -68,9 +86,8 @@ export type ScriptEntitySpawnEvent = ScriptEntityEvent & {
   cause: EntityInitializationCause;
 };
 
-export type ScriptEntityHealthChangedEvent = ScriptEntityEvent & {
-  oldValue: number;
-  newValue: number;
+export type ScriptEntityDataDrivenTriggerEvent = ScriptEntityEvent & {
+  getModifiers(): DefinitionModifier[];
 };
 
 export const ScriptEntity = {
@@ -94,6 +111,9 @@ export const ScriptEntity = {
     world.afterEvents.entityDie.subscribe(({ deadEntity, damageSource }) => {
       entities.get(deadEntity.typeId)?.onDie?.({ entity: deadEntity, damageSource });
     });
+    world.afterEvents.entityHealthChanged.subscribe((event) => {
+      entities.get(event.entity.typeId)?.onHealthChanged?.(event);
+    });
     world.afterEvents.entityHitEntity.subscribe(({ damagingEntity, hitEntity }) => {
       entities.get(damagingEntity.typeId)?.onHit?.({ entity: damagingEntity, target: hitEntity });
     });
@@ -107,11 +127,22 @@ export const ScriptEntity = {
           ?.onInteract?.({ entity: target, player, beforeItemStack, itemStack });
       },
     );
+    world.afterEvents.entityLoad.subscribe((event) => {
+      entities.get(event.entity.typeId)?.onLoad?.(event);
+    });
+    world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
+      entities.get(removedEntity.typeId)?.onRemove?.({ entity: removedEntity });
+    });
     world.afterEvents.entitySpawn.subscribe((event) => {
       entities.get(event.entity.typeId)?.onSpawn?.(event);
     });
-    world.afterEvents.entityHealthChanged.subscribe((event) => {
-      entities.get(event.entity.typeId)?.onHealthChanged?.(event);
+    world.afterEvents.dataDrivenEntityTrigger.subscribe((event) => {
+      entities.get(event.entity.typeId)?.onDataDrivenTrigger?.[event.eventId]?.({
+        entity: event.entity,
+        getModifiers() {
+          return event.getModifiers();
+        },
+      });
     });
   },
 };
