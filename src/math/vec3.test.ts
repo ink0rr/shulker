@@ -85,6 +85,18 @@ describe("Vec3 static", () => {
     expect(Vec3.floor(input)).toEqual(expected);
   });
 
+  it("computes the ceil of the vector", () => {
+    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
+    const expected: Vector3 = { x: 2, y: 3, z: 4 };
+    expect(Vec3.ceil(input)).toEqual(expected);
+  });
+
+  it("computes the center of the vector", () => {
+    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
+    const expected: Vector3 = { x: 1.5, y: 2.5, z: 3.5 };
+    expect(Vec3.center(input)).toEqual(expected);
+  });
+
   it("normalizes the vector", () => {
     const result: Vector3 = Vec3.normalize(v1);
     expect(result.x).toBeCloseTo(0.27, 2);
@@ -385,6 +397,22 @@ describe("Vec3 instance", () => {
     const vectorB = Vec3.floor(vectorA);
 
     const result = vectorA.floor();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to compute the ceil of the vector with the same result as the static method", () => {
+    const vectorA = new Vec3(1.33, 2.14, 3.55);
+    const vectorB = Vec3.ceil(vectorA);
+
+    const result = vectorA.ceil();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to compute the center of the vector with the same result as the static method", () => {
+    const vectorA = new Vec3(1.33, 2.14, 3.55);
+    const vectorB = Vec3.center(vectorA);
+
+    const result = vectorA.center();
     expect(result).toEqual(vectorB);
   });
 

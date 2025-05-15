@@ -78,6 +78,18 @@ describe("Vec2 static", () => {
     expect(Vec2.floor(input)).toEqual(expected);
   });
 
+  it("computes the ceil of the vector", () => {
+    const input: Vector2 = { x: 1.33, y: 2.14 };
+    const expected: Vector2 = { x: 2, y: 3 };
+    expect(Vec2.ceil(input)).toEqual(expected);
+  });
+
+  it("computes the center of the vector", () => {
+    const input: Vector2 = { x: 1.33, y: 2.14 };
+    const expected: Vector2 = { x: 1.5, y: 2.5 };
+    expect(Vec2.center(input)).toEqual(expected);
+  });
+
   it("normalizes the vector", () => {
     const result: Vector2 = Vec2.normalize(v1);
     expect(result.x).toBeCloseTo(0.45, 2);
@@ -96,7 +108,7 @@ describe("Vec2 static", () => {
 
   it("converts a vector to a string with overridden options", () => {
     const vector: Vector2 = { x: 1.23456789, y: 2.99 };
-    const expectedString1 = "1.2346|2.9900"; 
+    const expectedString1 = "1.2346|2.9900";
     expect(Vec2.toString(vector, { decimals: 4, delimiter: "|" })).toBe(expectedString1);
     const expectedString2 = "1|3";
     expect(Vec2.toString(vector, { decimals: 0, delimiter: "|" })).toBe(expectedString2);
@@ -320,6 +332,22 @@ describe("Vec2 instance", () => {
     const vectorB = Vec2.floor(vectorA);
 
     const result = vectorA.floor();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to compute the ceil of the vector with the same result as the static method", () => {
+    const vectorA = new Vec2(1.33, 2.14);
+    const vectorB = Vec2.ceil(vectorA);
+
+    const result = vectorA.ceil();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to compute the center of the vector with the same result as the static method", () => {
+    const vectorA = new Vec2(1.33, 2.14);
+    const vectorB = Vec2.center(vectorA);
+
+    const result = vectorA.center();
     expect(result).toEqual(vectorB);
   });
 
