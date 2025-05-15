@@ -251,7 +251,7 @@ export class Vec2 {
    * Center the components of a vector to produce a new vector
    */
   static center(v: Vector2): Vec2 {
-    return new Vec2(Math.floor(v.x + 0.5), Math.floor(v.y + 0.5));
+    return new Vec2(Math.floor(v.x) + 0.5, Math.floor(v.y) + 0.5);
   }
 
   /**

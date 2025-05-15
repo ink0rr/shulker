@@ -278,7 +278,7 @@ export class Vec3 {
    * Center the components of a vector to produce a new vector
    */
   static center(v: Vector3): Vec3 {
-    return new Vec3(Math.floor(v.x + 0.5), Math.floor(v.y + 0.5), Math.floor(v.z + 0.5));
+    return new Vec3(Math.floor(v.x) + 0.5, Math.floor(v.y) + 0.5, Math.floor(v.z) + 0.5);
   }
 
   /**
