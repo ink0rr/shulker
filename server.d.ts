@@ -14,6 +14,10 @@ declare namespace ShulkerInternal {
   type PotionLiquidTypes = `${vanilla.MinecraftPotionLiquidTypes}`;
   type PotionModifierTypes = `${vanilla.MinecraftPotionModifierTypes}`;
 
+  type BlockComponents = `${server.BlockComponentTypes}`;
+  type EntityComponents = `${server.EntityComponentTypes}`;
+  type ItemComponents = `${server.ItemComponentTypes}`;
+
   type BlockTags = UnionString<
     | "acacia"
     | "birch"
@@ -100,8 +104,8 @@ declare namespace ShulkerInternal {
 
 declare module "@minecraft/server" {
   interface Block {
+    getComponent<K extends ShulkerInternal.BlockComponents>(component: K): BlockComponentTypeMap[K];
     getTags(): ShulkerInternal.BlockTags[];
-    getComponent<K extends keyof BlockComponentTypeMap>(component: K): BlockComponentTypeMap[K];
     hasTag(tag: ShulkerInternal.BlockTags): boolean;
     matches<T extends keyof vanilla.BlockStateMapping>(
       blockName: T,
@@ -193,8 +197,10 @@ declare module "@minecraft/server" {
       animationName: bedrockts.AnimationIdentifier,
       options?: PlayAnimationOptions,
     ): void;
-    getComponent<K extends keyof EntityComponentTypeMap>(component: K): EntityComponentTypeMap[K];
-    hasComponent<K extends keyof EntityComponentTypeMap>(component: K): boolean;
+    getComponent<K extends ShulkerInternal.EntityComponents>(
+      component: K,
+    ): EntityComponentTypeMap[K];
+    hasComponent<K extends ShulkerInternal.EntityComponents>(component: K): boolean;
     addEffect(
       effectType: ShulkerInternal.EffectTypes,
       duration: number,
@@ -267,9 +273,9 @@ declare module "@minecraft/server" {
   }
 
   interface ItemStack {
-    getComponent<K extends keyof ItemComponentTypeMap>(component: K): ItemComponentTypeMap[K];
+    getComponent<K extends ShulkerInternal.ItemComponents>(component: K): ItemComponentTypeMap[K];
+    hasComponent<K extends ShulkerInternal.ItemComponents>(component: K): boolean;
     getTags(): bedrockts.ItemTag[];
-    hasComponent<K extends keyof ItemComponentTypeMap>(component: K): boolean;
     hasTag(tag: bedrockts.ItemTag): boolean;
     matches<T extends keyof vanilla.BlockStateMapping>(
       blockName: T,
