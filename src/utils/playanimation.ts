@@ -21,12 +21,13 @@ export type PlayAnimationState<T extends string = string> = {
  * controller.play(player);
  */
 export class PlayAnimationController<T extends string> {
-  #id: string;
-  #animations: [string, PlayAnimationOptions][];
+  protected animations: [string, PlayAnimationOptions][];
 
-  constructor(id: string, states: Record<T, PlayAnimationState<T>>) {
-    this.#id = id;
-    this.#animations = [];
+  constructor(
+    protected id: string,
+    states: Record<T, PlayAnimationState<T>>,
+  ) {
+    this.animations = [];
 
     for (const animationName in states) {
       const state = states[animationName];
@@ -36,7 +37,7 @@ export class PlayAnimationController<T extends string> {
           controller: id,
           blendOutTime: state.blendOutTime,
         };
-        this.#animations.push([animationName, options]);
+        this.animations.push([animationName, options]);
         continue;
       }
 
@@ -48,12 +49,12 @@ export class PlayAnimationController<T extends string> {
             blendOutTime: state.blendOutTime,
             stopExpression: transition[nextState],
           };
-          this.#animations.push([animationName, options]);
+          this.animations.push([animationName, options]);
         }
       }
     }
 
-    this.#animations = this.#animations.reverse();
+    this.animations = this.animations.reverse();
   }
 
   /**
@@ -61,7 +62,7 @@ export class PlayAnimationController<T extends string> {
    * @param entity The entity to play the animation on.
    */
   play(entity: Entity) {
-    for (const [animationName, options] of this.#animations) {
+    for (const [animationName, options] of this.animations) {
       entity.playAnimation(animationName, options);
     }
   }
@@ -77,6 +78,6 @@ export class PlayAnimationController<T extends string> {
     animationName: AnimationIdentifier,
     options?: Omit<PlayAnimationOptions, "controller">,
   ) {
-    entity.playAnimation(animationName, { controller: this.#id, ...options });
+    entity.playAnimation(animationName, { controller: this.id, ...options });
   }
 }
