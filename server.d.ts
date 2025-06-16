@@ -117,6 +117,17 @@ declare module "@minecraft/server" {
       blockName: T,
       states?: vanilla.BlockStateMapping[T],
     ): boolean;
+    getState<T extends keyof vanilla.BlockStateSuperset | string>(
+      stateName: T,
+    ): T extends keyof vanilla.BlockStateSuperset
+      ? vanilla.BlockStateSuperset[T]
+      : boolean | number | string | undefined;
+    withState<T extends keyof vanilla.BlockStateSuperset | string>(
+      name: T,
+      value: T extends keyof vanilla.BlockStateSuperset
+        ? vanilla.BlockStateSuperset[T]
+        : boolean | number | string,
+    ): BlockPermutation;
   }
   interface BlockRecordPlayerComponent {
     setRecord(recordItemType?: ShulkerInternal.ItemTypes, startPlaying?: boolean): void;
