@@ -189,10 +189,13 @@ export const ScriptItem = {
       });
     });
 
-    world.afterEvents.itemUseOn.subscribe(
-      ({ source, itemStack, block, blockFace, faceLocation }) => {
+    world.afterEvents.playerInteractWithBlock.subscribe(
+      ({ player, itemStack, block, blockFace, faceLocation }) => {
+        if (!itemStack) {
+          return;
+        }
         items.get(itemStack.typeId)?.onUseOn?.({
-          player: source,
+          player,
           itemStack,
           block,
           blockFace,
