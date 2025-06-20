@@ -26,10 +26,9 @@ export function setVariable(entity: Entity, key: string, value: string | number)
   if (typeof value === "string") {
     value = `'${value}'`;
   }
-  const players = getAllPlayers().map((p) => p.name);
   entity.playAnimation("animation.humanoid.base_pose", {
     controller,
     stopExpression: `!q.is_in_ui ? {v.${key} = ${value};}; return 1;`,
-    players,
+    players: getAllPlayers(),
   });
 }

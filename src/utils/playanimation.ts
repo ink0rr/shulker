@@ -63,7 +63,7 @@ export class PlayAnimationController<T extends string> {
    * @param entity The entity to play the animation on.
    */
   play(entity: Entity) {
-    const players = getAllPlayers().map((p) => p.name);
+    const players = getAllPlayers();
     for (const [animationName, options] of this.animations) {
       options.players = players;
       entity.playAnimation(animationName, options);
@@ -84,7 +84,7 @@ export class PlayAnimationController<T extends string> {
   ) {
     const playOptions: PlayAnimationOptions = {
       controller: this.id,
-      players: getAllPlayers().map((p) => p.name),
+      players: getAllPlayers(),
     };
     if (options) {
       Object.assign(playOptions, options);

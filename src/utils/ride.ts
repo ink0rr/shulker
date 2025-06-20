@@ -22,10 +22,10 @@ const mountEvents = {
 
 function createListener() {
   return system.runInterval(() => {
-    const rideComponents = [...getActiveDimensions()]
+    const rideComponents = getActiveDimensions()
       .flatMap((dimension) => dimension.getEntities({ families: ["mob"] }))
       .map((e) => e.getComponent("minecraft:rideable"))
-      .filter((component) => component?.isValid());
+      .filter((component) => component?.isValid);
 
     for (const rideComponent of rideComponents) {
       for (const rider of rideComponent.getRiders()) {
@@ -36,7 +36,7 @@ function createListener() {
     }
 
     rideMap.forEach((rideComp, rider) => {
-      if (!rideComp.isValid() || !rideComp.getRiders().some((r) => r.id === rider.id)) {
+      if (!rideComp.isValid || !rideComp.getRiders().some((r) => r.id === rider.id)) {
         mountEvents.onDismount.forEach((f) => f({ rider, ride: rideComp.entity }));
         rideMap.delete(rider);
         return;
