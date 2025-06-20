@@ -9,6 +9,11 @@ declare namespace ShulkerInternal {
   type ModalForm<T extends unknown[]> = {
     /**
      * @remarks
+     * Adds a section divider to the form.
+     */
+    divider(): ShulkerInternal.ModalForm<[...T, undefined]>;
+    /**
+     * @remarks
      * Adds a dropdown with choices to the form.
      *
      * This function can't be called in read-only mode.
@@ -18,6 +23,22 @@ declare namespace ShulkerInternal {
       options: (server.RawMessage | string)[],
       defaultValueIndex?: number,
     ): ModalForm<[...T, number]>;
+    /**
+     * @remarks
+     * Adds a header to the form.
+     *
+     * @param text
+     * Text to display.
+     */
+    header(text: server.RawMessage | string): ShulkerInternal.ModalForm<[...T, undefined]>;
+    /**
+     * @remarks
+     * Adds a label to the form.
+     *
+     * @param text
+     * Text to display.
+     */
+    label(text: server.RawMessage | string): ShulkerInternal.ModalForm<[...T, undefined]>;
     /**
      * @remarks
      * Creates and shows this modal popup form. Returns
@@ -75,11 +96,14 @@ declare namespace ShulkerInternal {
 
 declare module "@minecraft/server-ui" {
   interface ModalFormData {
+    divider(): ShulkerInternal.ModalForm<[undefined]>;
     dropdown(
       label: server.RawMessage | string,
       options: (server.RawMessage | string)[],
       defaultValueIndex?: number,
     ): ShulkerInternal.ModalForm<[number]>;
+    header(text: server.RawMessage | string): ShulkerInternal.ModalForm<[undefined]>;
+    label(text: server.RawMessage | string): ShulkerInternal.ModalForm<[undefined]>;
     slider(
       label: server.RawMessage | string,
       minimumValue: number,
