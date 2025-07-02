@@ -104,6 +104,29 @@ export class Vec3 {
     return Vec3.equals(this, other);
   }
 
+  static applyOffset(location: Vector3, rotation: Vector2, offset: Vector3): Vec3 {
+    const yaw = rotation.y * (Math.PI / 180);
+    const pitch = rotation.x * (Math.PI / 180);
+
+    const cosPitch = Math.cos(pitch);
+    const sinPitch = Math.sin(pitch);
+    const cosYaw = Math.cos(yaw);
+    const sinYaw = Math.sin(yaw);
+
+    const right = new Vec3(cosYaw, 0, sinYaw);
+    const up = new Vec3(sinYaw * -sinPitch, cosPitch, cosYaw * sinPitch);
+    const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
+
+    return new Vec3(location)
+      .add(right.scale(offset.x))
+      .add(up.scale(offset.y))
+      .add(forward.scale(offset.z));
+  }
+
+  applyOffset(rotation: Vector2, offset: Vector3): Vec3 {
+    return Vec3.applyOffset(this, rotation, offset);
+  }
+
   /**
    * Add two vectors to produce a new vector
    */
