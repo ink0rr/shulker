@@ -5,6 +5,7 @@ export type ShootProjectileOptions = {
   power?: number;
   gravity?: number;
   inertia?: number;
+  liquidInertia?: number;
   location?: Vector3;
   direction?: Vector3;
 };
@@ -18,10 +19,10 @@ export function shootProjectile(
     power = 1,
     gravity = 0.05,
     inertia = 0.99,
+    liquidInertia = 0.6,
     location = shooter.getHeadLocation(),
     direction = shooter.getViewDirection(),
   } = options ?? {};
-  location.y += 0.1;
 
   const entity = shooter.dimension.spawnEntity(identifier, Vec3.add(location, direction));
   const projectile = entity.getComponent("minecraft:projectile");
@@ -35,7 +36,7 @@ export function shootProjectile(
     }
     entity.clearVelocity();
     entity.applyImpulse(velocity);
-    velocity = velocity.subtract(g).scale(inertia);
+    velocity = velocity.subtract(g).scale(entity.isInWater ? liquidInertia : inertia);
   });
   return projectile;
 }
