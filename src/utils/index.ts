@@ -2,7 +2,6 @@ export * from "./active_chunk.js";
 export * from "./active_dimensions.js";
 export * from "./equipment.js";
 export * from "./interval.js";
-export * from "./local_position.js";
 export * from "./playanimation.js";
 export * from "./players.js";
 export * from "./projectile.js";
