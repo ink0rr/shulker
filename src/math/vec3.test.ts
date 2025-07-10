@@ -254,6 +254,40 @@ describe("Vec3 static", () => {
       expect(result.z).toBeCloseTo(-3);
     });
   });
+
+  describe("Vec3.Angle", () => {
+    it("calculates the angle between two vectors", () => {
+      const result = Vec3.angle(Vec3.Forward, Vec3.Right);
+      expect(result).toBeCloseTo(90);
+    });
+
+    it("calculates the angle between opposite vectors", () => {
+      const result = Vec3.angle(Vec3.Forward, Vec3.Back);
+      expect(result).toBeCloseTo(180);
+    });
+
+    it("calculates the angle between identical vectors", () => {
+      const result = Vec3.angle(Vec3.Forward, Vec3.Forward);
+      expect(result).toBeCloseTo(0);
+    });
+  });
+
+  describe("Vec3.SignedAngle", () => {
+    it("calculates the signed angle between two vectors", () => {
+      const result = Vec3.signedAngle(Vec3.Forward, Vec3.Right, Vec3.Up);
+      expect(result).toBeCloseTo(90);
+    });
+
+    it("calculates the negative signed angle between two vectors", () => {
+      const result = Vec3.signedAngle(Vec3.Right, Vec3.Forward, Vec3.Up);
+      expect(result).toBeCloseTo(-90);
+    });
+
+    it("calculates the signed angle between opposite vectors", () => {
+      const result = Vec3.signedAngle(Vec3.Forward, Vec3.Back, Vec3.Up);
+      expect(result).toBeCloseTo(0);
+    });
+  });
 });
 
 /**
@@ -493,4 +527,21 @@ describe("Vec3 instance", () => {
     const resultB = vectorA.rotateZ(angle);
     expect(resultA).toEqual(resultB);
   });
+
+  // it("should be able to calculate the angle between two vectors with the same result as the static method", () => {
+  //   const vectorA = new Vec3(Vec3.Forward);
+  //   const vectorB = new Vec3(Vec3.Right);
+  //   const resultA = Vec3.Angle(vectorA, vectorB);
+  //   const resultB = vectorA.angleTo(vectorB);
+  //   expect(resultA).toEqual(resultB);
+  // });
+
+  // it("should be able to calculate the signed angle between two vectors with the same result as the static method", () => {
+  //   const vectorA = new Vec3(Vec3.Forward);
+  //   const vectorB = new Vec3(Vec3.Right);
+  //   const axis = new Vec3(Vec3.Up);
+  //   const resultA = Vec3.SignedAngle(vectorA, vectorB, axis);
+  //   const resultB = vectorA.signedAngleTo(vectorB, axis);
+  //   expect(resultA).toEqual(resultB);
+  // });
 });

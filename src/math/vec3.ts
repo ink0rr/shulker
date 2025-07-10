@@ -233,6 +233,52 @@ export class Vec3 {
   }
 
   /**
+   * Returns the angle in degrees between from and to.
+   * The angle returned is the unsigned angle, so it will always be between 0 and 180 degrees.
+   */
+  static angle(from: Vector3, to: Vector3): number {
+    const magFrom = Vec3.magnitude(from);
+    const magTo = Vec3.magnitude(to);
+
+    const dot = Vec3.dot(from, to);
+    const cos = dot / (magFrom * magTo);
+
+    const clampedCos = Math.max(-1, Math.min(1, cos));
+
+    const angleRad = Math.acos(clampedCos);
+    return angleRad * (180 / Math.PI);
+  }
+
+  /**
+   * Returns the angle in degrees between this vector and another.
+   */
+  angle(to: Vector3): number {
+    return Vec3.angle(this, to);
+  }
+
+  /**
+   * Returns the signed angle in degrees between from and to.
+   * @param from The vector from which the angular difference is measured.
+   * @param to The vector to which the angular difference is measured.
+   * @param axis A vector around which the other vectors are rotated.
+   */
+  static signedAngle(from: Vector3, to: Vector3, axis: Vector3): number {
+    const unsignedAngle = Vec3.angle(from, to);
+    const cross = Vec3.cross(from, to);
+    const sign = Math.sign(Vec3.dot(cross, axis));
+    return unsignedAngle * sign;
+  }
+
+  /**
+   * Returns the signed angle in degrees between this vector and another.
+   * @param to The vector to which the angular difference is measured.
+   * @param axis A vector around which the other vectors are rotated.
+   */
+  signedAngle(to: Vector3, axis: Vector3): number {
+    return Vec3.signedAngle(this, to, axis);
+  }
+
+  /**
    * Floor the components of a vector to produce a new vector
    */
   static floor(v: Vector3): Vec3 {
