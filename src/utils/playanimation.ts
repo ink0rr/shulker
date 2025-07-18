@@ -1,5 +1,6 @@
 import { Entity, PlayAnimationOptions } from "@minecraft/server";
 import { AnimationIdentifier } from "bedrock-ts";
+import { getAllPlayers } from "./players.js";
 
 export type PlayAnimationState<T extends string = string> = {
   blendOutTime?: number;
@@ -62,8 +63,11 @@ export class PlayAnimationController<T extends string> {
    * @param entity The entity to play the animation on.
    */
   play(entity: Entity) {
+    const players = getAllPlayers().map((p) => p.name);
     for (const [animationName, options] of this.animations) {
+      options.players = players;
       entity.playAnimation(animationName, options);
+      options.players = undefined;
     }
   }
 
@@ -78,6 +82,13 @@ export class PlayAnimationController<T extends string> {
     animationName: AnimationIdentifier,
     options?: Omit<PlayAnimationOptions, "controller">,
   ) {
-    entity.playAnimation(animationName, { controller: this.id, ...options });
+    const playOptions: PlayAnimationOptions = {
+      controller: this.id,
+      players: getAllPlayers().map((p) => p.name),
+    };
+    if (options) {
+      Object.assign(playOptions, options);
+    }
+    entity.playAnimation(animationName, playOptions);
   }
 }
