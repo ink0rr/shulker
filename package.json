@@ -1,6 +1,6 @@
 {
   "name": "shulker",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "type": "module",
   "scripts": {
     "prepack": "tsup ./src/index.ts --dts --treeshake --format esm && bun run scripts/prepack.js"
