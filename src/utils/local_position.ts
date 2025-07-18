@@ -18,16 +18,17 @@ export function getLocalPosition(location: Vector3, rotation: Vector2, distance:
   const yaw = rotation.y * (Math.PI / 180);
   const pitch = rotation.x * (Math.PI / 180);
 
-  const dx = new Vec3(Math.cos(yaw), 0, Math.sin(yaw)).scale(distance.x);
-  const dy = new Vec3(
-    Math.sin(yaw) * -Math.sin(pitch),
-    Math.cos(pitch),
-    Math.cos(yaw) * Math.sin(pitch),
-  ).scale(distance.y);
-  const dz = new Vec3(
-    -Math.sin(yaw) * Math.cos(pitch),
-    -Math.sin(pitch),
-    Math.cos(yaw) * Math.cos(pitch),
-  ).scale(distance.z);
-  return new Vec3(location).add(dx).add(dy).add(dz);
+  const cosPitch = Math.cos(pitch);
+  const sinPitch = Math.sin(pitch);
+  const cosYaw = Math.cos(yaw);
+  const sinYaw = Math.sin(yaw);
+
+  const right = new Vec3(cosYaw, 0, sinYaw);
+  const up = new Vec3(sinYaw * -sinPitch, cosPitch, cosYaw * sinPitch);
+  const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
+
+  return new Vec3(location)
+    .add(right.scale(distance.x))
+    .add(up.scale(distance.y))
+    .add(forward.scale(distance.z));
 }
