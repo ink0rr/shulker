@@ -1,4 +1,5 @@
 import { Dimension, system, world } from "@minecraft/server";
+import { getAllPlayers } from "./players.js";
 
 let dimensionList: Dimension[];
 
@@ -31,7 +32,7 @@ function registerEvents() {
  */
 export function getActiveDimensions() {
   if (!dimensionList) {
-    dimensionList = world.getAllPlayers().map((p) => p.dimension);
+    dimensionList = Array.from(new Set(getAllPlayers().map((p) => p.dimension)));
     system.run(registerEvents);
   }
   return dimensionList;
