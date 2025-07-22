@@ -26,7 +26,7 @@ export class PlayAnimationController<T extends string> {
 
   constructor(
     protected id: string,
-    states: Record<T, PlayAnimationState<T>>,
+    states: Record<T, PlayAnimationState<NoInfer<T>>>,
   ) {
     this.animations = [];
 
@@ -48,7 +48,7 @@ export class PlayAnimationController<T extends string> {
             controller: id,
             nextState,
             blendOutTime: state.blendOutTime,
-            stopExpression: transition[nextState],
+            stopExpression: transition[nextState as keyof typeof transition],
           };
           this.animations.push([animationName, options]);
         }
