@@ -286,7 +286,7 @@ export class Vec3 {
   /**
    * Calculate the distance between two vectors
    */
-  distanceTo(other: Vector3): number {
+  distance(other: Vector3): number {
     return Vec3.distance(this, other);
   }
 

@@ -414,7 +414,7 @@ describe("Vec3 instance", () => {
     const vectorB = new Vec3(4, 5, 6);
     const mag = Vec3.distance(vectorA, vectorB);
 
-    expect(vectorA.distanceTo(vectorB)).toEqual(mag);
+    expect(vectorA.distance(vectorB)).toEqual(mag);
   });
 
   it("should be able to normalize the vector with the same result as the static method", () => {
