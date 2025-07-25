@@ -66,6 +66,24 @@ export class Vec2 {
   }
 
   /**
+   * Sets the X value of the vector
+   * @param value The new X value
+   * @returns A new vector with the updated value
+   */
+  setX(value: number): Vec2 {
+    return new Vec2(value, this.y);
+  }
+
+  /**
+   * Sets the Y value of the vector
+   * @param value The new Y value
+   * @returns A new vector with the updated value
+   */
+  setY(value: number): Vec2 {
+    return new Vec2(this.x, value);
+  }
+
+  /**
    * Add two vectors to produce a new vector
    */
   static add(a: Vector2, b: Partial<Vector2>): Vec2 {

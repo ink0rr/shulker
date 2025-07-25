@@ -113,6 +113,33 @@ export class Vec3 {
   }
 
   /**
+   * Sets the X value of the vector
+   * @param value The new X value
+   * @returns A new vector with the updated value
+   */
+  setX(value: number): Vec3 {
+    return new Vec3(value, this.y, this.z);
+  }
+
+  /**
+   * Sets the Y value of the vector
+   * @param value The new Y value
+   * @returns A new vector with the updated value
+   */
+  setY(value: number): Vec3 {
+    return new Vec3(this.x, value, this.z);
+  }
+
+  /**
+   * Sets the Z value of the vector
+   * @param value The new Z value
+   * @returns A new vector with the updated value
+   */
+  setZ(value: number): Vec3 {
+    return new Vec3(this.x, this.y, value);
+  }
+
+  /**
    * Check the equality of two vectors
    */
   static equals(a: Vector3, b: Vector3): boolean {
