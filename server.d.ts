@@ -161,7 +161,7 @@ declare module "@minecraft/server" {
     setCamera(
       cameraPreset: ShulkerInternal.CameraPresetsTypes,
       setOptions?:
-        | CameraDefaultOptions
+        | CameraFixedBoomOptions
         | CameraSetFacingOptions
         | CameraSetLocationOptions
         | CameraSetPosOptions
