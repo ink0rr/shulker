@@ -58,17 +58,6 @@ export class Vec3 {
   }
 
   /**
-   * Creates a vector from the given yaw value
-   */
-  static fromYaw(val: number | Vector2): Vec3 {
-    if (typeof val === "object") {
-      val = val.y;
-    }
-    const rad = (val * Math.PI) / 180;
-    return new Vec3(-Math.sin(rad), 0, Math.cos(rad));
-  }
-
-  /**
    * Creates a Vec3 instance from the given vector value
    */
   static from(vector: Vector3): Vec3;
@@ -93,6 +82,34 @@ export class Vec3 {
       default:
         return new Vec3(v.x, v.y, v.z);
     }
+  }
+
+  /**
+   * Creates a new Vec3 from the given rotation value
+   */
+  static fromRotation(rotation: Vector2): Vec3;
+  /**
+   * Creates a new Vec3 from the given yaw and pitch value
+   */
+  static fromRotation(yaw: number, pitch?: number): Vec3;
+  static fromRotation(val: Vector2 | number, pitch?: number): Vec3 {
+    let yaw: number;
+    if (typeof val === "number") {
+      yaw = val;
+    } else {
+      yaw = val.y;
+      pitch = val.x;
+    }
+    const psi = (yaw * Math.PI) / 180;
+    if (pitch === undefined) {
+      return new Vec3(-Math.sin(psi), 0, Math.cos(psi));
+    }
+    const theta = (pitch * Math.PI) / 180;
+    return new Vec3(
+      -Math.cos(theta) * Math.sin(psi),
+      -Math.sin(theta),
+      Math.cos(theta) * Math.cos(psi),
+    );
   }
 
   /**
