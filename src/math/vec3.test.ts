@@ -1,5 +1,5 @@
 import { Vector3 } from "@minecraft/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Vec3 } from "./vec3.js";
 
 describe("Vec3 static", () => {
@@ -74,27 +74,23 @@ describe("Vec3 static", () => {
   });
 
   it("computes the floor of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1, y: 2, z: 3 };
-    expect(Vec3.floor(input)).toEqual(expected);
+    const result: Vector3 = Vec3.floor({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1, y: 2, z: 3 });
   });
 
   it("computes the floor of negative vectors", () => {
-    const input: Vector3 = { x: -1.33, y: -2.14, z: -3.55 };
-    const expected: Vector3 = { x: -2, y: -3, z: -4 };
-    expect(Vec3.floor(input)).toEqual(expected);
+    const result: Vector3 = Vec3.floor({ x: -1.33, y: -2.14, z: -3.55 });
+    expect(result).toEqual({ x: -2, y: -3, z: -4 });
   });
 
   it("computes the ceil of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 2, y: 3, z: 4 };
-    expect(Vec3.ceil(input)).toEqual(expected);
+    const result: Vector3 = Vec3.ceil({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 2, y: 3, z: 4 });
   });
 
   it("computes the center of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1.5, y: 2.5, z: 3.5 };
-    expect(Vec3.center(input)).toEqual(expected);
+    const result: Vector3 = Vec3.center({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1.5, y: 2.5, z: 3.5 });
   });
 
   it("normalizes the vector", () => {
@@ -332,7 +328,7 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained adds should work as expected
     const toAdd: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.add(toAdd).add(toAdd).add(toAdd);
+    const resultTwo: Vector3 = result.add(toAdd).add(toAdd).add(toAdd);
     expect(resultTwo).toEqual({ x: 8, y: 10, z: 12 });
   });
 
@@ -355,7 +351,10 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained subtracts should work as expected
     const toSubtract: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.subtract(toSubtract).subtract(toSubtract).subtract(toSubtract);
+    const resultTwo: Vector3 = result
+      .subtract(toSubtract)
+      .subtract(toSubtract)
+      .subtract(toSubtract);
     expect(resultTwo).toEqual({ x: -2, y: -1, z: 0 });
   });
 
@@ -376,7 +375,7 @@ describe("Vec3 instance", () => {
     expect(result).toEqual(vectorB);
 
     // Subsequent chained subtracts should work as expected
-    const resultTwo = result.scale(3).scale(3);
+    const resultTwo: Vector3 = result.scale(3).scale(3);
     expect(resultTwo).toEqual({ x: 27, y: 54, z: 81 });
   });
 
@@ -399,7 +398,7 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained subtracts should work as expected
     const toCross: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.cross(toCross).cross(toCross);
+    const resultTwo: Vector3 = result.cross(toCross).cross(toCross);
     expect(resultTwo).toEqual({ x: 9, y: -18, z: 9 });
   });
 

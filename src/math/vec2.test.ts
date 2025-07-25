@@ -1,5 +1,5 @@
 import { Vector2 } from "@minecraft/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { Vec2 } from "./vec2.js";
 
 describe("Vec2 static", () => {
@@ -67,27 +67,23 @@ describe("Vec2 static", () => {
   });
 
   it("computes the floor of the vector", () => {
-    const input: Vector2 = { x: 1.33, y: 2.14 };
-    const expected: Vector2 = { x: 1, y: 2 };
-    expect(Vec2.floor(input)).toEqual(expected);
+    const result: Vector2 = Vec2.floor({ x: 1.33, y: 2.14 });
+    expect(result).toEqual({ x: 1, y: 2 });
   });
 
   it("computes the floor of negative vectors", () => {
-    const input: Vector2 = { x: -1.33, y: -2.14 };
-    const expected: Vector2 = { x: -2, y: -3 };
-    expect(Vec2.floor(input)).toEqual(expected);
+    const result: Vector2 = Vec2.floor({ x: -1.33, y: -2.14 });
+    expect(result).toEqual({ x: -2, y: -3 });
   });
 
   it("computes the ceil of the vector", () => {
-    const input: Vector2 = { x: 1.33, y: 2.14 };
-    const expected: Vector2 = { x: 2, y: 3 };
-    expect(Vec2.ceil(input)).toEqual(expected);
+    const result: Vector2 = Vec2.ceil({ x: 1.33, y: 2.14 });
+    expect(result).toEqual({ x: 2, y: 3 });
   });
 
   it("computes the center of the vector", () => {
-    const input: Vector2 = { x: 1.33, y: 2.14 };
-    const expected: Vector2 = { x: 1.5, y: 2.5 };
-    expect(Vec2.center(input)).toEqual(expected);
+    const result: Vector2 = Vec2.center({ x: 1.33, y: 2.14 });
+    expect(result).toEqual({ x: 1.5, y: 2.5 });
   });
 
   it("normalizes the vector", () => {
@@ -238,7 +234,7 @@ describe("Vec2 instance", () => {
 
     // Subsequent chained adds should work as expected
     const toAdd: Vector2 = { x: 1, y: 1 };
-    const resultTwo = result.add(toAdd).add(toAdd).add(toAdd);
+    const resultTwo: Vector2 = result.add(toAdd).add(toAdd).add(toAdd);
     expect(resultTwo).toEqual({ x: 8, y: 10 });
   });
 
@@ -261,7 +257,10 @@ describe("Vec2 instance", () => {
 
     // Subsequent chained subtracts should work as expected
     const toSubtract: Vector2 = { x: 1, y: 1 };
-    const resultTwo = result.subtract(toSubtract).subtract(toSubtract).subtract(toSubtract);
+    const resultTwo: Vector2 = result
+      .subtract(toSubtract)
+      .subtract(toSubtract)
+      .subtract(toSubtract);
     expect(resultTwo).toEqual({ x: -2, y: -1 });
   });
 
@@ -282,7 +281,7 @@ describe("Vec2 instance", () => {
     expect(result).toEqual(vectorB);
 
     // Subsequent chained subtracts should work as expected
-    const resultTwo = result.scale(3).scale(3);
+    const resultTwo: Vector2 = result.scale(3).scale(3);
     expect(resultTwo).toEqual({ x: 27, y: 54 });
   });
 
