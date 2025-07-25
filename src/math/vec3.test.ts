@@ -1,4 +1,4 @@
-import { Vector3 } from "@minecraft/server";
+import { Direction, Vector3 } from "@minecraft/server";
 import { describe, expect, it } from "bun:test";
 import { Vec3 } from "./vec3.js";
 
@@ -291,8 +291,8 @@ describe("Vec3 static", () => {
  * between the two implementations
  */
 describe("Vec3 instance", () => {
-  it("should be able to be constructed from a Vector3 or three nunmbers", () => {
-    const vectorA = new Vec3({ x: 1, y: 2, z: 3 });
+  it("should be able to be constructed from a Vector3", () => {
+    const vectorA = Vec3.from({ x: 1, y: 2, z: 3 });
     const vectorB = new Vec3(1, 2, 3);
     expect(vectorA.x).toBe(1);
     expect(vectorA.y).toBe(2);
@@ -300,13 +300,13 @@ describe("Vec3 instance", () => {
     expect(vectorA).toEqual(vectorB);
   });
 
-  it("should be able to assign a Vector3", () => {
-    const vector = new Vec3(1, 2, 3);
-    const updated = vector.assign({ x: 4, y: 5, z: 6 });
-    expect(updated.x).toBe(4);
-    expect(updated.y).toBe(5);
-    expect(updated.z).toBe(6);
-    expect(updated).toBe(vector); // Referential equality must be preserved
+  it("should be able to be constructed from a Direction", () => {
+    const vectorA = Vec3.from(Direction.Up);
+    const vectorB = new Vec3(0, 1, 0);
+    expect(vectorA.x).toBe(0);
+    expect(vectorA.y).toBe(1);
+    expect(vectorA.z).toBe(0);
+    expect(vectorA).toEqual(vectorB);
   });
 
   it("should be able to check equality with the same result as the static method", () => {

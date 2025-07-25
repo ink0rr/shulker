@@ -1,24 +1,12 @@
-import { Vector2, Vector3 } from "@minecraft/server";
+import { Direction, Vector2, Vector3 } from "@minecraft/server";
 import { clampNumber } from "./utils.js";
 
 export class Vec3 {
-  x: number;
-  y: number;
-  z: number;
-
-  constructor(vector3: Vector3);
-  constructor(x: number, y: number, z: number);
-  constructor(first: number | Vector3, y?: number, z?: number) {
-    if (typeof first === "object") {
-      this.x = first.x;
-      this.y = first.y;
-      this.z = first.z;
-    } else {
-      this.x = first;
-      this.y = y ?? 0;
-      this.z = z ?? 0;
-    }
-  }
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+    public readonly z: number,
+  ) {}
 
   /**
    * Shorthand for `new Vec3(0, 0, -1)`
@@ -81,13 +69,30 @@ export class Vec3 {
   }
 
   /**
-   * Assigns the values of the passed in vector to this vector. Returns itself.
+   * Creates a Vec3 instance from the given vector value
    */
-  assign(v: Partial<Vector3>): this {
-    if (v.x !== undefined) this.x = v.x;
-    if (v.y !== undefined) this.y = v.y;
-    if (v.z !== undefined) this.z = v.z;
-    return this;
+  static from(vector: Vector3): Vec3;
+  /**
+   * Creates a Vec3 instance from the given direction value
+   */
+  static from(direction: Direction): Vec3;
+  static from(v: Vector3 | Direction): Vec3 {
+    switch (v) {
+      case Direction.Down:
+        return Vec3.Down;
+      case Direction.East:
+        return Vec3.Right;
+      case Direction.North:
+        return Vec3.Back;
+      case Direction.South:
+        return Vec3.Forward;
+      case Direction.Up:
+        return Vec3.Up;
+      case Direction.West:
+        return Vec3.Left;
+      default:
+        return new Vec3(v.x, v.y, v.z);
+    }
   }
 
   /**
@@ -117,7 +122,7 @@ export class Vec3 {
     const up = new Vec3(sinYaw * -sinPitch, cosPitch, cosYaw * sinPitch);
     const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
 
-    return new Vec3(location)
+    return Vec3.from(location)
       .add(right.scale(offset.x))
       .add(up.scale(offset.y))
       .add(forward.scale(offset.z));
