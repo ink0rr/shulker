@@ -23,8 +23,7 @@
   "devDependencies": {
     "@tsconfig/node-lts": "^22.0.1",
     "@types/bun": "^1.2.16",
-    "prettier": "^3.5.3",
-    "prettier-plugin-organize-imports": "^4.1.0",
+    "dprint": "^0.50.1",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"

@@ -1,4 +1,4 @@
-import { Entity, system, Vector3 } from "@minecraft/server";
+import { Entity, Vector3, system } from "@minecraft/server";
 import { Vec3 } from "../math/vec3.js";
 
 export type ShootProjectileOptions = {

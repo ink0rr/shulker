@@ -119,13 +119,11 @@ declare module "@minecraft/server" {
     ): boolean;
     getState<T extends keyof vanilla.BlockStateSuperset | string>(
       stateName: T,
-    ): T extends keyof vanilla.BlockStateSuperset
-      ? vanilla.BlockStateSuperset[T]
+    ): T extends keyof vanilla.BlockStateSuperset ? vanilla.BlockStateSuperset[T]
       : boolean | number | string | undefined;
     withState<T extends keyof vanilla.BlockStateSuperset | string>(
       name: T,
-      value: T extends keyof vanilla.BlockStateSuperset
-        ? vanilla.BlockStateSuperset[T]
+      value: T extends keyof vanilla.BlockStateSuperset ? vanilla.BlockStateSuperset[T]
         : boolean | number | string,
     ): BlockPermutation;
   }
