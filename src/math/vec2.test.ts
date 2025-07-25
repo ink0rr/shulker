@@ -199,20 +199,12 @@ describe("Vec2 static", () => {
  * between the two implementations
  */
 describe("Vec2 instance", () => {
-  it("should be able to be constructed from a Vector2 or three nunmbers", () => {
-    const vectorA = new Vec2({ x: 1, y: 2 });
+  it("should be able to be constructed from a Vector2 or two numbers", () => {
+    const vectorA = Vec2.from({ x: 1, y: 2 });
     const vectorB = new Vec2(1, 2);
     expect(vectorA.x).toBe(1);
     expect(vectorA.y).toBe(2);
     expect(vectorA).toEqual(vectorB);
-  });
-
-  it("should be able to assign a Vector2", () => {
-    const vector = new Vec2(1, 2);
-    const updated = vector.assign({ x: 4, y: 5 });
-    expect(updated.x).toBe(4);
-    expect(updated.y).toBe(5);
-    expect(updated).toBe(vector); // Referential equality must be preserved
   });
 
   it("should be able to check equality with the same result as the static method", () => {

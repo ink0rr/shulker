@@ -2,20 +2,10 @@ import { Vector2 } from "@minecraft/server";
 import { clampNumber } from "./utils.js";
 
 export class Vec2 {
-  x: number;
-  y: number;
-
-  constructor(vector2: Vector2);
-  constructor(x: number, y: number);
-  constructor(first: number | Vector2, y?: number) {
-    if (typeof first === "object") {
-      this.x = first.x;
-      this.y = first.y;
-    } else {
-      this.x = first;
-      this.y = y ?? 0;
-    }
-  }
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+  ) {}
 
   /**
    * Shorthand for `new Vec2(0, -1)`
@@ -55,12 +45,10 @@ export class Vec2 {
   }
 
   /**
-   * Assigns the values of the passed in vector to this vector. Returns itself.
+   * Creates a Vec2 instance from the given vector value
    */
-  assign(v: Partial<Vector2>): this {
-    if (v.x !== undefined) this.x = v.x;
-    if (v.y !== undefined) this.y = v.y;
-    return this;
+  static from(vector: Vector2): Vec2 {
+    return new Vec2(vector.x, vector.y);
   }
 
   /**
