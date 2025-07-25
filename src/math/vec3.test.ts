@@ -527,20 +527,20 @@ describe("Vec3 instance", () => {
     expect(resultA).toEqual(resultB);
   });
 
-  // it("should be able to calculate the angle between two vectors with the same result as the static method", () => {
-  //   const vectorA = new Vec3(Vec3.Forward);
-  //   const vectorB = new Vec3(Vec3.Right);
-  //   const resultA = Vec3.Angle(vectorA, vectorB);
-  //   const resultB = vectorA.angleTo(vectorB);
-  //   expect(resultA).toEqual(resultB);
-  // });
+  it("should be able to calculate the angle between two vectors with the same result as the static method", () => {
+    const vectorA = Vec3.Forward;
+    const vectorB = Vec3.Right;
+    const resultA = Vec3.angle(vectorA, vectorB);
+    const resultB = vectorA.angle(vectorB);
+    expect(resultA).toEqual(resultB);
+  });
 
-  // it("should be able to calculate the signed angle between two vectors with the same result as the static method", () => {
-  //   const vectorA = new Vec3(Vec3.Forward);
-  //   const vectorB = new Vec3(Vec3.Right);
-  //   const axis = new Vec3(Vec3.Up);
-  //   const resultA = Vec3.SignedAngle(vectorA, vectorB, axis);
-  //   const resultB = vectorA.signedAngleTo(vectorB, axis);
-  //   expect(resultA).toEqual(resultB);
-  // });
+  it("should be able to calculate the signed angle between two vectors with the same result as the static method", () => {
+    const vectorA = Vec3.Forward;
+    const vectorB = Vec3.Right;
+    const axis = Vec3.Up;
+    const resultA = Vec3.signedAngle(vectorA, vectorB, axis);
+    const resultB = vectorA.signedAngle(vectorB, axis);
+    expect(resultA).toEqual(resultB);
+  });
 });
