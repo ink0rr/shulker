@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@minecraft/vanilla-data": "^1.21.90",
-    "bedrock-ts": "^0.6.0"
+    "bedrock-ts": "^0.10.0"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^22.0.1",

@@ -18,50 +18,6 @@ declare namespace ShulkerInternal {
   type EntityComponents = `${server.EntityComponentTypes}`;
   type ItemComponents = `${server.ItemComponentTypes}`;
 
-  type BlockTags = UnionString<
-    | "acacia"
-    | "birch"
-    | "dark_oak"
-    | "diamond_pick_diggable"
-    | "dirt"
-    | "fertilize_area"
-    | "grass"
-    | "gravel"
-    | "gold_pick_diggable"
-    | "iron_pick_diggable"
-    | "jungle"
-    | "log"
-    | "metal"
-    | "minecraft:crop"
-    | "minecraft:diamond_tier_destructible"
-    | "minecraft:iron_tier_destructible"
-    | "minecraft:is_axe_item_destructible"
-    | "minecraft:is_hoe_item_destructible"
-    | "minecraft:is_mace_item_destructible"
-    | "minecraft:is_pickaxe_item_destructible"
-    | "minecraft:is_shears_item_destructible"
-    | "minecraft:is_shovel_item_destructible"
-    | "minecraft:is_sword_item_destructible"
-    | "minecraft:netherite_tier_destructible"
-    | "minecraft:stone_tier_destructible"
-    | "mob_spawner"
-    | "not_feature_replaceable"
-    | "oak"
-    | "one_way_collidable"
-    | "plant"
-    | "pumpkin"
-    | "rail"
-    | "sand"
-    | "snow"
-    | "spruce"
-    | "stone"
-    | "stone_pick_diggable"
-    | "text_sign"
-    | "trapdoors"
-    | "water"
-    | "wood"
-    | "wood_pick_diggable"
-  >;
   type BlockTypes = UnionString<`${vanilla.MinecraftBlockTypes}`>;
   type CameraPresetsTypes = UnionString<`${vanilla.MinecraftCameraPresetsTypes}`>;
   type CooldownCategoryTypes = UnionString<`${vanilla.MinecraftCooldownCategoryTypes}`>;
@@ -73,9 +29,9 @@ declare namespace ShulkerInternal {
     blockTypes?: BlockTypes[];
   }
   interface BlockFilter extends server.BlockFilter {
-    excludeTags?: BlockTags[];
+    excludeTags?: bedrockts.BlockTag[];
     excludeTypes?: BlockTypes[];
-    includeTags?: BlockTags[];
+    includeTags?: bedrockts.BlockTag[];
     includeTypes?: BlockTypes[];
   }
   interface BlockFillOptions extends server.BlockFillOptions {
@@ -105,8 +61,8 @@ declare namespace ShulkerInternal {
 declare module "@minecraft/server" {
   interface Block {
     getComponent<K extends ShulkerInternal.BlockComponents>(component: K): BlockComponentTypeMap[K];
-    getTags(): ShulkerInternal.BlockTags[];
-    hasTag(tag: ShulkerInternal.BlockTags): boolean;
+    getTags(): bedrockts.BlockTag[];
+    hasTag(tag: bedrockts.BlockTag): boolean;
     matches<T extends keyof vanilla.BlockStateMapping>(
       blockName: T,
       states?: vanilla.BlockStateMapping[T],
@@ -132,9 +88,9 @@ declare module "@minecraft/server" {
   }
 
   interface BlockRaycastOptions {
-    excludeTags?: ShulkerInternal.BlockTags[];
+    excludeTags?: bedrockts.BlockTag[];
     excludeTypes?: ShulkerInternal.BlockTypes[];
-    includeTags?: ShulkerInternal.BlockTags[];
+    includeTags?: bedrockts.BlockTag[];
     includeTypes?: ShulkerInternal.BlockTypes[];
   }
 

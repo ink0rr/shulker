@@ -5,7 +5,7 @@
       "name": "shulker",
       "dependencies": {
         "@minecraft/vanilla-data": "^1.21.90",
-        "bedrock-ts": "^0.6.0",
+        "bedrock-ts": "^0.10.0",
       },
       "devDependencies": {
         "@tsconfig/node-lts": "^22.0.1",
@@ -169,7 +169,7 @@
 
     "balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
 
-    "bedrock-ts": ["bedrock-ts@0.6.0", "", {}, "sha512-lHp7qVUMXL3hCfN/3OXyAjgWiC/R9Y7PEwm3ZqAlT7QSSUbOJvG1Rv/bUJzBBnPhtukZFCadNa+JiKKew93Ldw=="],
+    "bedrock-ts": ["bedrock-ts@0.10.0", "", {}, "sha512-as2BsYz0H7daaCwqL2ZX89TdIJGafYdiYtynE/y+28401uiR6/yo3colGRaOjq/ShJAvXDekc0DOQ3sqPYPIRg=="],
 
     "brace-expansion": ["brace-expansion@2.0.2", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ=="],
 
