@@ -309,6 +309,15 @@ describe("Vec3 instance", () => {
     expect(vectorA).toEqual(vectorB);
   });
 
+  it("should be able to be constructed from an array", () => {
+    const vectorA = Vec3.from([1, 2, 3]);
+    const vectorB = new Vec3(1, 2, 3);
+    expect(vectorA.x).toBe(1);
+    expect(vectorA.y).toBe(2);
+    expect(vectorA.z).toBe(3);
+    expect(vectorA).toEqual(vectorB);
+  });
+
   it("should be able to check equality with the same result as the static method", () => {
     const vectorA = new Vec3(1, 2, 3);
     const vectorB = new Vec3(1, 2, 3);

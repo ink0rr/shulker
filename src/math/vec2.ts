@@ -47,8 +47,16 @@ export class Vec2 {
   /**
    * Creates a Vec2 instance from the given vector value
    */
-  static from(vector: Vector2): Vec2 {
-    return new Vec2(vector.x, vector.y);
+  static from(vector: Vector2): Vec2;
+  /**
+   * Creates a Vec2 instance from the given array
+   */
+  static from(array: number[]): Vec2;
+  static from(v: Vector2 | number[]): Vec2 {
+    if (Array.isArray(v)) {
+      return new Vec2(v[0], v[1]);
+    }
+    return new Vec2(v.x, v.y);
   }
 
   /**
@@ -304,6 +312,14 @@ export class Vec2 {
    */
   lerp(other: Vector2, t: number): Vec2 {
     return Vec2.lerp(this, other, t);
+  }
+
+  static toArray(v: Vector2): number[] {
+    return [v.x, v.y];
+  }
+
+  toArray(): number[] {
+    return Vec2.toArray(this);
   }
 
   /**

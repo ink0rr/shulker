@@ -207,6 +207,14 @@ describe("Vec2 instance", () => {
     expect(vectorA).toEqual(vectorB);
   });
 
+  it("should be able to be constructed from an array", () => {
+    const vectorA = Vec2.from([1, 2]);
+    const vectorB = new Vec2(1, 2);
+    expect(vectorA.x).toBe(1);
+    expect(vectorA.y).toBe(2);
+    expect(vectorA).toEqual(vectorB);
+  });
+
   it("should be able to check equality with the same result as the static method", () => {
     const vectorA = new Vec2(1, 2);
     const vectorB = new Vec2(1, 2);

@@ -65,7 +65,11 @@ export class Vec3 {
    * Creates a Vec3 instance from the given direction value
    */
   static from(direction: Direction): Vec3;
-  static from(v: Vector3 | Direction): Vec3 {
+  /**
+   * Creates a Vec3 instance from the given array
+   */
+  static from(array: number[]): Vec3;
+  static from(v: Vector3 | Direction | number[]): Vec3 {
     switch (v) {
       case Direction.Down:
         return Vec3.Down;
@@ -80,6 +84,9 @@ export class Vec3 {
       case Direction.West:
         return Vec3.Left;
       default:
+        if (Array.isArray(v)) {
+          return new Vec3(v[0], v[1], v[2]);
+        }
         return new Vec3(v.x, v.y, v.z);
     }
   }
@@ -520,6 +527,14 @@ export class Vec3 {
    */
   rotateZ(a: number): Vec3 {
     return Vec3.rotateZ(this, a);
+  }
+
+  static toArray(v: Vector3): number[] {
+    return [v.x, v.y, v.z];
+  }
+
+  toArray(): number[] {
+    return Vec3.toArray(this);
   }
 
   /**
