@@ -86,6 +86,7 @@ export type ScriptItemUseOnEvent = ScriptItemEvent & {
   block: Block;
   blockFace: Direction;
   faceLocation: Vector3;
+  cancel(): void;
 };
 
 export type ScriptItemUseEvent = ScriptItemEvent & {
@@ -189,20 +190,22 @@ export const ScriptItem = {
       });
     });
 
-    world.afterEvents.playerInteractWithBlock.subscribe(
-      ({ player, itemStack, block, blockFace, faceLocation }) => {
-        if (!itemStack) {
-          return;
-        }
-        items.get(itemStack.typeId)?.onUseOn?.({
-          player,
-          itemStack,
-          block,
-          blockFace,
-          faceLocation,
-        });
-      },
-    );
+    world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+      const { player, itemStack, block, blockFace, faceLocation, isFirstEvent } = event;
+      if (!itemStack || !isFirstEvent) {
+        return;
+      }
+      items.get(itemStack.typeId)?.onUseOn?.({
+        player,
+        itemStack,
+        block,
+        blockFace,
+        faceLocation,
+        cancel() {
+          event.cancel = true;
+        },
+      });
+    });
 
     world.afterEvents.itemStartUse.subscribe(({ source, itemStack, useDuration }) => {
       items.get(itemStack.typeId)?.onStartUse?.({
