@@ -3,27 +3,27 @@ import { format } from "./formatter.js";
 
 export const debug = Object.freeze({
   log(...args: unknown[]) {
-    DEBUG: impl("log", ...args);
+    DEBUG: impl("LOG", ...args);
   },
   info(...args: unknown[]) {
-    DEBUG: impl("info", ...args);
+    DEBUG: impl("INFO", ...args);
   },
   warn(...args: unknown[]) {
-    DEBUG: impl("warn", ...args);
+    DEBUG: impl("WARN", ...args);
   },
   error(...args: unknown[]) {
-    impl("error", ...args);
+    impl("ERROR", ...args);
   },
   run(callback: () => void) {
     DEBUG: try {
       callback();
     } catch (e) {
-      impl("error", e);
+      impl("ERROR", e);
     }
   },
 });
 
-function impl(method: keyof typeof debug, ...args: unknown[]) {
+function impl(method: Uppercase<keyof typeof debug>, ...args: unknown[]) {
   const formatted = args.map((v) => format(v, { indent: 1 })).join(" ");
   const methodStr = method.toUpperCase();
   world.sendMessage(`[${methodStr}] ${formatted}`);
