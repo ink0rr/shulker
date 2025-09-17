@@ -163,6 +163,22 @@ type FormatOptions = {
 
 const formatter = new ShulkerFormatter();
 
+/**
+ * A simple debugging utility for logging messages to the Minecraft chat.
+ * Messages are prefixed with their log level and formatted for readability.
+ *
+ * @example
+ * ```ts
+ * import { debug } from "shulker";
+ * debug.log("This is a log message", { some: "object", value: 42 });
+ * debug.info("This is an info message");
+ * debug.warn("This is a warning message");
+ * debug.error("This is an error message");
+ * debug.run(() => {
+ *   // Code that may throw an error
+ * });
+ * ```
+ */
 export const debug = Object.freeze({
   log(...args: unknown[]) {
     DEBUG: impl("LOG", ...args);
