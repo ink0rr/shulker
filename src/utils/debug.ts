@@ -187,6 +187,5 @@ export const debug = Object.freeze({
 
 function impl(method: Uppercase<keyof typeof debug>, ...args: unknown[]) {
   const formatted = args.map((v) => formatter.format(v, { indent: 1 })).join(" ");
-  const methodStr = method.toUpperCase();
-  world.sendMessage(`[${methodStr}] ${formatted}`);
+  world.sendMessage(`[${method}] ${formatted}`);
 }
