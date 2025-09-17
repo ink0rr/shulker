@@ -17,8 +17,7 @@
     "@minecraft/server-ui": "^2.0.0"
   },
   "dependencies": {
-    "@minecraft/vanilla-data": "^1.21.90",
-    "bedrock-ts": "^0.10.0"
+    "@minecraft/vanilla-data": "^1.21.90"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^22.0.1",

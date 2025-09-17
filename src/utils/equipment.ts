@@ -1,4 +1,5 @@
 import {
+  EntityComponentTypes,
   EntityEquippableComponent,
   EquipmentSlot,
   ItemStack,
@@ -22,7 +23,7 @@ function getEquippable(player: Player) {
   }
   let component = components.get(player.id);
   if (!component) {
-    component = player.getComponent("minecraft:equippable");
+    component = player.getComponent(EntityComponentTypes.Equippable)!;
     components.set(player.id, component);
   }
   return component;

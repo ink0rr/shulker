@@ -1,5 +1,6 @@
 import {
   Entity,
+  EntityComponentTypes,
   EntityRemoveBeforeEvent,
   EntityRideableComponent,
   system,
@@ -24,8 +25,8 @@ function createListener() {
   return system.runInterval(() => {
     const rideComponents = getActiveDimensions()
       .flatMap((dimension) => dimension.getEntities({ families: ["mob"] }))
-      .map((e) => e.getComponent("minecraft:rideable"))
-      .filter((component) => component?.isValid);
+      .map((e) => e.getComponent(EntityComponentTypes.Rideable))
+      .filter((component) => component?.isValid) as EntityRideableComponent[];
 
     for (const rideComponent of rideComponents) {
       for (const rider of rideComponent.getRiders()) {

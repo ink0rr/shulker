@@ -1,4 +1,4 @@
-import { Entity, Vector3, system } from "@minecraft/server";
+import { Entity, EntityComponentTypes, Vector3, system } from "@minecraft/server";
 import { Vec3 } from "../math/vec3.js";
 
 export type ShootProjectileOptions = {
@@ -25,7 +25,10 @@ export function shootProjectile(
   } = options ?? {};
 
   const entity = shooter.dimension.spawnEntity(identifier, Vec3.add(location, direction));
-  const projectile = entity.getComponent("minecraft:projectile");
+  const projectile = entity.getComponent(EntityComponentTypes.Projectile);
+  if (!projectile) {
+    throw new Error(`Entity ${entity.typeId} does not have minecraft:projectile component!`);
+  }
   projectile.owner = shooter;
 
   let velocity = Vec3.scale(direction, power);
