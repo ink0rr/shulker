@@ -1,5 +1,6 @@
 export * from "./active_chunk.js";
 export * from "./active_dimensions.js";
+export * from "./debug.js";
 export * from "./equipment.js";
 export * from "./interval.js";
 export * from "./local_position.js";
