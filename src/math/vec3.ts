@@ -335,6 +335,20 @@ export class Vec3 {
   }
 
   /**
+   * Center the X and Z axis of a vector to produce a new vector
+   */
+  static bottomCenter(v: Vector3): Vec3 {
+    return new Vec3(Math.floor(v.x) + 0.5, Math.floor(v.y), Math.floor(v.z) + 0.5);
+  }
+
+  /**
+   * Center the X and Z axis of a vector to produce a new vector
+   */
+  bottomCenter(): Vec3 {
+    return Vec3.bottomCenter(this);
+  }
+
+  /**
    * Clamps the components of a vector to limits to produce a new vector
    */
   static clamp(v: Vector3, limits?: { min?: Partial<Vector3>; max?: Partial<Vector3> }): Vec3 {
