@@ -95,7 +95,7 @@ export type ScriptItemUseEvent = ScriptItemEvent & {
 export const ScriptItem = {
   register(itemList: ScriptItem[]) {
     const items = new Map<string, ScriptItem>();
-    const playerEquipments = new Map<string, Array<ItemStack | undefined>>();
+    const playerEquipments = new WeakMap<Player, Array<ItemStack | undefined>>();
     const equipmentSlots = Object.values(EquipmentSlot);
 
     for (const item of itemList) {
@@ -107,7 +107,7 @@ export const ScriptItem = {
         for (const [, item] of items) {
           item.onTick?.(player);
         }
-        const prevEquipments = playerEquipments.get(player.id) ?? [];
+        const prevEquipments = playerEquipments.get(player) ?? [];
         const currentEquipments = [];
         for (const slot of equipmentSlots) {
           currentEquipments.push(getEquipment(player, slot));
@@ -139,7 +139,7 @@ export const ScriptItem = {
             });
           }
         }
-        playerEquipments.set(player.id, currentEquipments);
+        playerEquipments.set(player, currentEquipments);
       }
     });
 
