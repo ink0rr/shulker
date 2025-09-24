@@ -181,27 +181,27 @@ const formatter = new ShulkerFormatter();
  */
 export const debug = Object.freeze({
   log(...args: unknown[]) {
-    DEBUG: impl("LOG", ...args);
+    DEBUG: impl("§aLOG§r", ...args);
   },
   info(...args: unknown[]) {
-    DEBUG: impl("INFO", ...args);
+    DEBUG: impl("§9INFO§r", ...args);
   },
   warn(...args: unknown[]) {
-    DEBUG: impl("WARN", ...args);
+    DEBUG: impl("§eWARN§r", ...args);
   },
   error(...args: unknown[]) {
-    impl("ERROR", ...args);
+    DEBUG: impl("§cERROR§r", ...args);
   },
   run(callback: () => void) {
     DEBUG: try {
       callback();
     } catch (e) {
-      impl("ERROR", e);
+      debug.error(e);
     }
   },
 });
 
-function impl(method: Uppercase<keyof typeof debug>, ...args: unknown[]) {
-  const formatted = args.map((v) => formatter.format(v, { indent: 1 })).join(" ");
+function impl(method: string, ...args: unknown[]) {
+  const formatted = args.map((v) => formatter.format(v)).join(" ");
   world.sendMessage(`[${method}] ${formatted}`);
 }
