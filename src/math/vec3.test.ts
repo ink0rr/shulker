@@ -93,6 +93,12 @@ describe("Vec3 static", () => {
     expect(result).toEqual({ x: 1.5, y: 2.5, z: 3.5 });
   });
 
+  it("computes the bottom center of the vector", () => {
+    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
+    const expected: Vector3 = { x: 1.5, y: 2, z: 3.5 };
+    expect(Vec3.bottomCenter(input)).toEqual(expected);
+  });
+
   it("normalizes the vector", () => {
     const result: Vector3 = Vec3.normalize(v1);
     expect(result.x).toBeCloseTo(0.27, 2);
@@ -455,6 +461,14 @@ describe("Vec3 instance", () => {
     const vectorB = Vec3.center(vectorA);
 
     const result = vectorA.center();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to compute the bottom center of the vector with the same result as the static method", () => {
+    const vectorA = new Vec3(1.33, 2.14, 3.55);
+    const vectorB = Vec3.bottomCenter(vectorA);
+
+    const result = vectorA.bottomCenter();
     expect(result).toEqual(vectorB);
   });
 
