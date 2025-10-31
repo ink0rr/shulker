@@ -9,7 +9,6 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "server.d.ts",
     "server-ui.d.ts"
   ],
   "peerDependencies": {
