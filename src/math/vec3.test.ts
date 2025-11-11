@@ -94,9 +94,8 @@ describe("Vec3 static", () => {
   });
 
   it("computes the bottom center of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1.5, y: 2, z: 3.5 };
-    expect(Vec3.bottomCenter(input)).toEqual(expected);
+    const result: Vector3 = Vec3.bottomCenter({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1.5, y: 2, z: 3.5 });
   });
 
   it("normalizes the vector", () => {
