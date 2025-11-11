@@ -1,4 +1,3 @@
-export * from "./active_chunk.js";
 export * from "./active_dimensions.js";
 export * from "./debug.js";
 export * from "./equipment.js";
@@ -6,9 +5,7 @@ export * from "./interval.js";
 export * from "./playanimation.js";
 export * from "./players.js";
 export * from "./projectile.js";
-export * from "./ride.js";
 export * from "./scriptevents.js";
-export * from "./solid_block.js";
 export * from "./time.js";
 export * from "./timeout.js";
 export * from "./variable.js";
