@@ -1,8 +1,25 @@
-import { EntityEquippableComponent, EquipmentSlot, ItemStack, Player } from "@minecraft/server";
+import {
+  EntityEquippableComponent,
+  EquipmentSlot,
+  ItemStack,
+  Player,
+  system,
+  world,
+} from "@minecraft/server";
 
-const cache = new WeakMap<Player, EntityEquippableComponent>();
+let cache: WeakMap<Player, EntityEquippableComponent>;
+
+function registerEvents() {
+  world.beforeEvents.playerLeave.subscribe(({ player }) => {
+    cache.delete(player);
+  });
+}
 
 function getEquippable(player: Player) {
+  if (!cache) {
+    cache = new Map();
+    system.run(registerEvents);
+  }
   let component = cache.get(player);
   if (!component) {
     component = player.getComponent("minecraft:equippable");
