@@ -54,6 +54,7 @@ class ShulkerFormatter {
               breaks: true,
               bracketIndex: bracketIndex + 1,
               colored,
+              quoteString: true,
             }),
           )
           .join(`${this.colors.reset}, ` + this.newLine(indent + 1)) +
@@ -73,6 +74,7 @@ class ShulkerFormatter {
               indent,
               bracketIndex: bracketIndex + 1,
               colored,
+              quoteString: true,
             }),
           )
           .join(`${this.colors.reset}, `) +
@@ -103,6 +105,7 @@ class ShulkerFormatter {
           breaks,
           bracketIndex: bracketIndex + 1,
           colored,
+          quoteString: true,
         });
         if (compiled) {
           if (hasContent) {
@@ -131,8 +134,11 @@ class ShulkerFormatter {
     } else if (typeof o === "string") {
       // String
       const color = colored ? this.colors.string : "";
-      const str = this.escape(o);
-      out += `${color}"${str}"${this.colors.reset}`;
+      let str = this.escape(o);
+      if (options.quoteString) {
+        str = `${color}"${str}"`;
+      }
+      out += `${str}${this.colors.reset}`;
     } else if (typeof o === "number") {
       // Number
       const color = colored ? this.colors.number : "";
@@ -159,6 +165,7 @@ type FormatOptions = {
   breaks?: boolean;
   bracketIndex?: number;
   colored?: boolean;
+  quoteString?: boolean;
 };
 
 const formatter = new ShulkerFormatter();
