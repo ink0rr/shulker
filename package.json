@@ -3,10 +3,10 @@
   "version": "0.10.0",
   "type": "module",
   "scripts": {
-    "prepack": "tsup ./src/index.ts --dts --treeshake --format esm && bun run scripts/prepack.js"
+    "prepack": "tsdown ./src/index.ts && bun run scripts/prepack.js"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "files": [
     "dist",
     "server.d.ts",
@@ -25,7 +25,7 @@
     "@types/bun": "^1.2.8",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "tsup": "^8.4.0",
+    "tsdown": "^0.18.2",
     "typescript": "^5.8.2",
     "vitest": "^2.1.9"
   }
