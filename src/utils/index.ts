@@ -1,6 +1,6 @@
 export * from "./active_dimensions.js";
+export * from "./component.js";
 export * from "./debug.js";
-export * from "./equipment.js";
 export * from "./interval.js";
 export * from "./playanimation.js";
 export * from "./players.js";

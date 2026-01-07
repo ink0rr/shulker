@@ -2,6 +2,7 @@ import {
   Block,
   Direction,
   Entity,
+  EntityComponentTypes,
   EquipmentSlot,
   ItemStack,
   Player,
@@ -9,7 +10,7 @@ import {
   system,
   world,
 } from "@minecraft/server";
-import { getEquipment } from "../utils/equipment.js";
+import { getComponent } from "../utils/component.js";
 import { getAllPlayers } from "../utils/players.js";
 
 export type ScriptItem = {
@@ -108,10 +109,11 @@ export const ScriptItem = {
         for (const [, item] of items) {
           item.onTick?.(player);
         }
+        const equippable = getComponent(player, EntityComponentTypes.Equippable)!;
         const prevEquipments = playerEquipments.get(player) ?? [];
         const currentEquipments = [];
         for (const slot of equipmentSlots) {
-          currentEquipments.push(getEquipment(player, slot));
+          currentEquipments.push(equippable.getEquipment(slot));
         }
         for (let i = 0; i < equipmentSlots.length; i++) {
           const slot = equipmentSlots[i];
@@ -163,13 +165,14 @@ export const ScriptItem = {
       if (!(damagingEntity instanceof Player)) {
         return;
       }
-      const equipment = getEquipment(damagingEntity, EquipmentSlot.Mainhand);
-      if (!equipment) {
+      const equippable = getComponent(damagingEntity, EntityComponentTypes.Equippable)!;
+      const item = equippable.getEquipment(EquipmentSlot.Mainhand);
+      if (!item) {
         return;
       }
-      items.get(equipment.typeId)?.onHit?.({
+      items.get(item.typeId)?.onHit?.({
         player: damagingEntity,
-        itemStack: equipment,
+        itemStack: item,
         victim: hitEntity,
       });
     });
@@ -179,13 +182,14 @@ export const ScriptItem = {
       if (!(player instanceof Player)) {
         return;
       }
-      const equipment = getEquipment(player, EquipmentSlot.Mainhand);
-      if (!equipment) {
+      const equippable = getComponent(player, EntityComponentTypes.Equippable)!;
+      const item = equippable.getEquipment(EquipmentSlot.Mainhand);
+      if (!item) {
         return;
       }
-      items.get(equipment.typeId)?.onKill?.({
+      items.get(item.typeId)?.onKill?.({
         player,
-        itemStack: equipment,
+        itemStack: item,
         victim: deadEntity,
       });
     });
