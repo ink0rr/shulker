@@ -9,7 +9,7 @@
   "types": "./dist/index.d.mts",
   "files": [
     "dist",
-    "server-ui.d.ts"
+    "server-ui.d.mts"
   ],
   "peerDependencies": {
     "@minecraft/server": "^2.4.0",
