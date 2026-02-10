@@ -9,4 +9,7 @@ mock.module("@minecraft/server", () => ({
     Up: "Up",
     West: "West",
   },
+  world: {
+    sendMessage: mock((message) => message),
+  },
 }));
