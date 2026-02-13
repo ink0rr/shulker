@@ -1,4 +1,4 @@
-import { Direction, Vector3 } from "@minecraft/server";
+import { Direction, Vector2, Vector3 } from "@minecraft/server";
 import { describe, expect, it } from "bun:test";
 import { Vec3 } from "./vec3.js";
 
@@ -96,6 +96,29 @@ describe("Vec3 static", () => {
   it("computes the bottom center of the vector", () => {
     const result: Vector3 = Vec3.bottomCenter({ x: 1.33, y: 2.14, z: 3.55 });
     expect(result).toEqual({ x: 1.5, y: 2, z: 3.5 });
+  });
+
+  it("applies relative offset based on rotation", () => {
+    const south: Vector2 = { x: 90, y: 0 };
+    const west: Vector2 = { x: 90, y: 90 };
+    const east: Vector2 = { x: -90, y: -90 };
+    const north: Vector2 = { x: -90, y: 180 };
+    const southResult: Vector3 = Vec3.applyOffset(v1, south, v1);
+    const westResult: Vector3 = Vec3.applyOffset(v1, west, v1);
+    const eastResult: Vector3 = Vec3.applyOffset(v1, east, v1);
+    const northResult: Vector3 = Vec3.applyOffset(v1, north, v1);
+    expect(southResult.x).toBeCloseTo(2, 5);
+    expect(southResult.y).toBeCloseTo(-1, 5);
+    expect(southResult.z).toBeCloseTo(5, 5);
+    expect(westResult.x).toBeCloseTo(-1, 5);
+    expect(westResult.y).toBeCloseTo(-1, 5);
+    expect(westResult.z).toBeCloseTo(4, 5);
+    expect(eastResult.x).toBeCloseTo(-1, 5);
+    expect(eastResult.y).toBeCloseTo(5, 5);
+    expect(eastResult.z).toBeCloseTo(2, 5);
+    expect(northResult.x).toBeCloseTo(0, 5);
+    expect(northResult.y).toBeCloseTo(5, 5);
+    expect(northResult.z).toBeCloseTo(5, 5);
   });
 
   it("normalizes the vector", () => {
@@ -468,6 +491,16 @@ describe("Vec3 instance", () => {
     const vectorB = Vec3.bottomCenter(vectorA);
 
     const result = vectorA.bottomCenter();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to apply offset to the vector with the same result as the static method", () => {
+    const vectorA = new Vec3(1, 2, 3);
+    const rotation: Vector2 = { x: 90, y: 45 };
+    const offset: Vector3 = { x: -1, y: 2, z: 3 };
+    const vectorB = Vec3.applyOffset(vectorA, rotation, offset);
+
+    const result = vectorA.applyOffset(rotation, offset);
     expect(result).toEqual(vectorB);
   });
 
