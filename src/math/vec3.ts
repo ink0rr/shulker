@@ -160,7 +160,7 @@ export class Vec3 {
     return Vec3.equals(this, other);
   }
 
-  static applyOffset(location: Vector3, rotation: Vector2, offset: Vector3): Vec3 {
+  static applyOffset(location: Vector3, rotation: Vector2, offset: Partial<Vector3>): Vec3 {
     const yaw = rotation.y * (Math.PI / 180);
     const pitch = rotation.x * (Math.PI / 180);
 
@@ -174,12 +174,12 @@ export class Vec3 {
     const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
 
     return Vec3.from(location)
-      .add(right.scale(offset.x))
-      .add(up.scale(offset.y))
-      .add(forward.scale(offset.z));
+      .add(right.scale(offset.x ?? 0))
+      .add(up.scale(offset.y ?? 0))
+      .add(forward.scale(offset.z ?? 0));
   }
 
-  applyOffset(rotation: Vector2, offset: Vector3): Vec3 {
+  applyOffset(rotation: Vector2, offset: Partial<Vector3>): Vec3 {
     return Vec3.applyOffset(this, rotation, offset);
   }
 
