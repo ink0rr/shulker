@@ -93,7 +93,6 @@ type FormatOptions = {
   breaks?: boolean;
   bracketIndex?: number;
   colored?: boolean;
-  quoteString?: boolean;
 };
 function formatArray(o: unknown[], options: FormatOptions): string {
   const { indent, breaks = true, bracketIndex = 0, colored = true } = options;
@@ -126,13 +125,10 @@ function formatArray(o: unknown[], options: FormatOptions): string {
   });
 }
 export function format(o: unknown, options: FormatOptions = { indent: 0 }): string {
-  const { indent, breaks = true, bracketIndex = 0, colored = true, quoteString = true } = options;
+  const { indent, breaks = true, bracketIndex = 0, colored = true } = options;
   switch (typeof o) {
     case "string": {
-      let str = escape(o);
-      if (quoteString || !str) {
-        str = `"${str}"`;
-      }
+      const str = `"${escape(o)}"`;
       return colorize({ type: "string", str, colored });
     }
     case "number": {
@@ -235,6 +231,6 @@ export const debug = Object.freeze({
 });
 
 function impl(method: string, ...args: unknown[]) {
-  const formatted = args.map((v) => format(v)).join(" ");
+  const formatted = args.map((v) => typeof v === "string" ? v : format(v)).join(" ");
   world.sendMessage(`[${method}] ${formatted}`);
 }

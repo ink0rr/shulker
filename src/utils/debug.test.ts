@@ -55,11 +55,11 @@ describe("Debug messages", () => {
   const helloWorld = "Hello, World!";
   it("successfully logs a simple string", () => {
     debug.log(helloWorld);
-    match(`[LOG] "${helloWorld}"`);
+    match(`[LOG] ${helloWorld}`);
   });
   it("successfully logs an empty string", () => {
     debug.log("");
-    match(`[LOG] ""`);
+    match(`[LOG] `);
   });
   it("successfully logs a number", () => {
     debug.info(42);
@@ -86,7 +86,7 @@ describe("Debug messages", () => {
   });
   it("successfully logs a warning", () => {
     debug.warn("This is a warning");
-    match(`[WARN] "This is a warning"`);
+    match(`[WARN] This is a warning`);
   });
   it("successfully logs an error", () => {
     const err = new Error("Something went wrong");
@@ -103,7 +103,7 @@ describe("Debug messages", () => {
     const str = "Test string";
     const arr = [1, 2, 3];
     debug.info(num, str, arr);
-    match(`[INFO] 123 "Test string" ${stringify(arr)}`);
+    match(`[INFO] 123 Test string ${stringify(arr)}`);
   });
   it("successfully logs a nested object", () => {
     const nestedObj = {
