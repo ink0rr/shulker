@@ -9,15 +9,36 @@ declare namespace ShulkerInternal {
   type ModalForm<T extends unknown[]> = {
     /**
      * @remarks
+     * Adds a section divider to the form.
+     */
+    divider(): ShulkerInternal.ModalForm<[...T, never]>;
+    /**
+     * @remarks
      * Adds a dropdown with choices to the form.
      *
      * This function can't be called in read-only mode.
      */
     dropdown(
       label: server.RawMessage | string,
-      options: (server.RawMessage | string)[],
-      defaultValueIndex?: number,
+      items: (server.RawMessage | string)[],
+      dropdownOptions?: serverui.ModalFormDataDropdownOptions,
     ): ModalForm<[...T, number]>;
+    /**
+     * @remarks
+     * Adds a header to the form.
+     *
+     * @param text
+     * Text to display.
+     */
+    header(text: server.RawMessage | string): ShulkerInternal.ModalForm<[...T, never]>;
+    /**
+     * @remarks
+     * Adds a label to the form.
+     *
+     * @param text
+     * Text to display.
+     */
+    label(text: server.RawMessage | string): ShulkerInternal.ModalForm<[...T, never]>;
     /**
      * @remarks
      * Creates and shows this modal popup form. Returns
@@ -41,8 +62,7 @@ declare namespace ShulkerInternal {
       label: server.RawMessage | string,
       minimumValue: number,
       maximumValue: number,
-      valueStep: number,
-      defaultValue?: number,
+      sliderOptions?: serverui.ModalFormDataSliderOptions,
     ): ModalForm<[...T, number]>;
     submitButton(submitButtonText: server.RawMessage | string): ModalForm<T>;
     /**
@@ -54,7 +74,7 @@ declare namespace ShulkerInternal {
     textField(
       label: server.RawMessage | string,
       placeholderText: server.RawMessage | string,
-      defaultValue?: string,
+      textFieldOptions?: serverui.ModalFormDataTextFieldOptions,
     ): ModalForm<[...T, string]>;
     /**
      * @remarks
@@ -69,32 +89,37 @@ declare namespace ShulkerInternal {
      *
      * This function can't be called in read-only mode.
      */
-    toggle(label: server.RawMessage | string, defaultValue?: boolean): ModalForm<[...T, boolean]>;
+    toggle(
+      label: server.RawMessage | string,
+      toggleOptions?: serverui.ModalFormDataToggleOptions,
+    ): ModalForm<[...T, boolean]>;
   };
 }
 
 declare module "@minecraft/server-ui" {
   interface ModalFormData {
+    divider(): ShulkerInternal.ModalForm<[never]>;
     dropdown(
       label: server.RawMessage | string,
-      options: (server.RawMessage | string)[],
-      defaultValueIndex?: number,
+      items: (server.RawMessage | string)[],
+      dropdownOptions?: ModalFormDataDropdownOptions,
     ): ShulkerInternal.ModalForm<[number]>;
+    header(text: server.RawMessage | string): ShulkerInternal.ModalForm<[never]>;
+    label(text: server.RawMessage | string): ShulkerInternal.ModalForm<[never]>;
     slider(
       label: server.RawMessage | string,
       minimumValue: number,
       maximumValue: number,
-      valueStep: number,
-      defaultValue?: number,
+      sliderOptions?: ModalFormDataSliderOptions,
     ): ShulkerInternal.ModalForm<[number]>;
     textField(
       label: server.RawMessage | string,
       placeholderText: server.RawMessage | string,
-      defaultValue?: string,
+      textFieldOptions?: ModalFormDataTextFieldOptions,
     ): ShulkerInternal.ModalForm<[string]>;
     toggle(
       label: server.RawMessage | string,
-      defaultValue?: boolean,
+      toggleOptions?: ModalFormDataToggleOptions,
     ): ShulkerInternal.ModalForm<[boolean]>;
   }
 }

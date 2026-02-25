@@ -1,5 +1,5 @@
-import { Vector3 } from "@minecraft/server";
-import { describe, expect, it } from "vitest";
+import { Direction, Vector2, Vector3 } from "@minecraft/server";
+import { describe, expect, it } from "bun:test";
 import { Vec3 } from "./vec3.js";
 
 describe("Vec3 static", () => {
@@ -74,33 +74,51 @@ describe("Vec3 static", () => {
   });
 
   it("computes the floor of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1, y: 2, z: 3 };
-    expect(Vec3.floor(input)).toEqual(expected);
+    const result: Vector3 = Vec3.floor({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1, y: 2, z: 3 });
   });
 
   it("computes the floor of negative vectors", () => {
-    const input: Vector3 = { x: -1.33, y: -2.14, z: -3.55 };
-    const expected: Vector3 = { x: -2, y: -3, z: -4 };
-    expect(Vec3.floor(input)).toEqual(expected);
+    const result: Vector3 = Vec3.floor({ x: -1.33, y: -2.14, z: -3.55 });
+    expect(result).toEqual({ x: -2, y: -3, z: -4 });
   });
 
   it("computes the ceil of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 2, y: 3, z: 4 };
-    expect(Vec3.ceil(input)).toEqual(expected);
+    const result: Vector3 = Vec3.ceil({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 2, y: 3, z: 4 });
   });
 
   it("computes the center of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1.5, y: 2.5, z: 3.5 };
-    expect(Vec3.center(input)).toEqual(expected);
+    const result: Vector3 = Vec3.center({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1.5, y: 2.5, z: 3.5 });
   });
 
   it("computes the bottom center of the vector", () => {
-    const input: Vector3 = { x: 1.33, y: 2.14, z: 3.55 };
-    const expected: Vector3 = { x: 1.5, y: 2, z: 3.5 };
-    expect(Vec3.bottomCenter(input)).toEqual(expected);
+    const result: Vector3 = Vec3.bottomCenter({ x: 1.33, y: 2.14, z: 3.55 });
+    expect(result).toEqual({ x: 1.5, y: 2, z: 3.5 });
+  });
+
+  it("applies relative offset based on rotation", () => {
+    const south: Vector2 = { x: 90, y: 0 };
+    const west: Vector2 = { x: 90, y: 90 };
+    const east: Vector2 = { x: -90, y: -90 };
+    const north: Vector2 = { x: -90, y: 180 };
+    const southResult: Vector3 = Vec3.applyOffset(v1, south, v1);
+    const westResult: Vector3 = Vec3.applyOffset(v1, west, v1);
+    const eastResult: Vector3 = Vec3.applyOffset(v1, east, v1);
+    const northResult: Vector3 = Vec3.applyOffset(v1, north, v1);
+    expect(southResult.x).toBeCloseTo(2, 5);
+    expect(southResult.y).toBeCloseTo(-1, 5);
+    expect(southResult.z).toBeCloseTo(5, 5);
+    expect(westResult.x).toBeCloseTo(-1, 5);
+    expect(westResult.y).toBeCloseTo(-1, 5);
+    expect(westResult.z).toBeCloseTo(4, 5);
+    expect(eastResult.x).toBeCloseTo(-1, 5);
+    expect(eastResult.y).toBeCloseTo(5, 5);
+    expect(eastResult.z).toBeCloseTo(2, 5);
+    expect(northResult.x).toBeCloseTo(0, 5);
+    expect(northResult.y).toBeCloseTo(5, 5);
+    expect(northResult.z).toBeCloseTo(5, 5);
   });
 
   it("normalizes the vector", () => {
@@ -301,8 +319,8 @@ describe("Vec3 static", () => {
  * between the two implementations
  */
 describe("Vec3 instance", () => {
-  it("should be able to be constructed from a Vector3 or three nunmbers", () => {
-    const vectorA = new Vec3({ x: 1, y: 2, z: 3 });
+  it("should be able to be constructed from a Vector3", () => {
+    const vectorA = Vec3.from({ x: 1, y: 2, z: 3 });
     const vectorB = new Vec3(1, 2, 3);
     expect(vectorA.x).toBe(1);
     expect(vectorA.y).toBe(2);
@@ -310,13 +328,22 @@ describe("Vec3 instance", () => {
     expect(vectorA).toEqual(vectorB);
   });
 
-  it("should be able to assign a Vector3", () => {
-    const vector = new Vec3(1, 2, 3);
-    const updated = vector.assign({ x: 4, y: 5, z: 6 });
-    expect(updated.x).toBe(4);
-    expect(updated.y).toBe(5);
-    expect(updated.z).toBe(6);
-    expect(updated).toBe(vector); // Referential equality must be preserved
+  it("should be able to be constructed from a Direction", () => {
+    const vectorA = Vec3.from(Direction.Up);
+    const vectorB = new Vec3(0, 1, 0);
+    expect(vectorA.x).toBe(0);
+    expect(vectorA.y).toBe(1);
+    expect(vectorA.z).toBe(0);
+    expect(vectorA).toEqual(vectorB);
+  });
+
+  it("should be able to be constructed from an array", () => {
+    const vectorA = Vec3.from([1, 2, 3]);
+    const vectorB = new Vec3(1, 2, 3);
+    expect(vectorA.x).toBe(1);
+    expect(vectorA.y).toBe(2);
+    expect(vectorA.z).toBe(3);
+    expect(vectorA).toEqual(vectorB);
   });
 
   it("should be able to check equality with the same result as the static method", () => {
@@ -338,7 +365,7 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained adds should work as expected
     const toAdd: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.add(toAdd).add(toAdd).add(toAdd);
+    const resultTwo: Vector3 = result.add(toAdd).add(toAdd).add(toAdd);
     expect(resultTwo).toEqual({ x: 8, y: 10, z: 12 });
   });
 
@@ -361,7 +388,10 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained subtracts should work as expected
     const toSubtract: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.subtract(toSubtract).subtract(toSubtract).subtract(toSubtract);
+    const resultTwo: Vector3 = result
+      .subtract(toSubtract)
+      .subtract(toSubtract)
+      .subtract(toSubtract);
     expect(resultTwo).toEqual({ x: -2, y: -1, z: 0 });
   });
 
@@ -382,7 +412,7 @@ describe("Vec3 instance", () => {
     expect(result).toEqual(vectorB);
 
     // Subsequent chained subtracts should work as expected
-    const resultTwo = result.scale(3).scale(3);
+    const resultTwo: Vector3 = result.scale(3).scale(3);
     expect(resultTwo).toEqual({ x: 27, y: 54, z: 81 });
   });
 
@@ -405,7 +435,7 @@ describe("Vec3 instance", () => {
 
     // Subsequent chained subtracts should work as expected
     const toCross: Vector3 = { x: 1, y: 1, z: 1 };
-    const resultTwo = result.cross(toCross).cross(toCross);
+    const resultTwo: Vector3 = result.cross(toCross).cross(toCross);
     expect(resultTwo).toEqual({ x: 9, y: -18, z: 9 });
   });
 
@@ -421,7 +451,7 @@ describe("Vec3 instance", () => {
     const vectorB = new Vec3(4, 5, 6);
     const mag = Vec3.distance(vectorA, vectorB);
 
-    expect(vectorA.distanceTo(vectorB)).toEqual(mag);
+    expect(vectorA.distance(vectorB)).toEqual(mag);
   });
 
   it("should be able to normalize the vector with the same result as the static method", () => {
@@ -461,6 +491,16 @@ describe("Vec3 instance", () => {
     const vectorB = Vec3.bottomCenter(vectorA);
 
     const result = vectorA.bottomCenter();
+    expect(result).toEqual(vectorB);
+  });
+
+  it("should be able to apply offset to the vector with the same result as the static method", () => {
+    const vectorA = new Vec3(1, 2, 3);
+    const rotation: Vector2 = { x: 90, y: 45 };
+    const offset: Vector3 = { x: -1, y: 2, z: 3 };
+    const vectorB = Vec3.applyOffset(vectorA, rotation, offset);
+
+    const result = vectorA.applyOffset(rotation, offset);
     expect(result).toEqual(vectorB);
   });
 
@@ -542,20 +582,20 @@ describe("Vec3 instance", () => {
     expect(resultA).toEqual(resultB);
   });
 
-  // it("should be able to calculate the angle between two vectors with the same result as the static method", () => {
-  //   const vectorA = new Vec3(Vec3.Forward);
-  //   const vectorB = new Vec3(Vec3.Right);
-  //   const resultA = Vec3.Angle(vectorA, vectorB);
-  //   const resultB = vectorA.angleTo(vectorB);
-  //   expect(resultA).toEqual(resultB);
-  // });
+  it("should be able to calculate the angle between two vectors with the same result as the static method", () => {
+    const vectorA = Vec3.Forward;
+    const vectorB = Vec3.Right;
+    const resultA = Vec3.angle(vectorA, vectorB);
+    const resultB = vectorA.angle(vectorB);
+    expect(resultA).toEqual(resultB);
+  });
 
-  // it("should be able to calculate the signed angle between two vectors with the same result as the static method", () => {
-  //   const vectorA = new Vec3(Vec3.Forward);
-  //   const vectorB = new Vec3(Vec3.Right);
-  //   const axis = new Vec3(Vec3.Up);
-  //   const resultA = Vec3.SignedAngle(vectorA, vectorB, axis);
-  //   const resultB = vectorA.signedAngleTo(vectorB, axis);
-  //   expect(resultA).toEqual(resultB);
-  // });
+  it("should be able to calculate the signed angle between two vectors with the same result as the static method", () => {
+    const vectorA = Vec3.Forward;
+    const vectorB = Vec3.Right;
+    const axis = Vec3.Up;
+    const resultA = Vec3.signedAngle(vectorA, vectorB, axis);
+    const resultB = vectorA.signedAngle(vectorB, axis);
+    expect(resultA).toEqual(resultB);
+  });
 });

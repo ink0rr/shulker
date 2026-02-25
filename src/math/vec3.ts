@@ -1,24 +1,12 @@
-import { Vector2, Vector3 } from "@minecraft/server";
+import { Direction, Vector2, Vector3 } from "@minecraft/server";
 import { clampNumber } from "./utils.js";
 
 export class Vec3 {
-  x: number;
-  y: number;
-  z: number;
-
-  constructor(vector3: Vector3);
-  constructor(x: number, y: number, z: number);
-  constructor(first: number | Vector3, y?: number, z?: number) {
-    if (typeof first === "object") {
-      this.x = first.x;
-      this.y = first.y;
-      this.z = first.z;
-    } else {
-      this.x = first;
-      this.y = y ?? 0;
-      this.z = z ?? 0;
-    }
-  }
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+    public readonly z: number,
+  ) {}
 
   /**
    * Shorthand for `new Vec3(0, 0, -1)`
@@ -70,24 +58,92 @@ export class Vec3 {
   }
 
   /**
-   * Creates a vector from the given yaw value
+   * Creates a Vec3 instance from the given vector value
    */
-  static fromYaw(val: number | Vector2): Vec3 {
-    if (typeof val === "object") {
-      val = val.y;
+  static from(vector: Vector3): Vec3;
+  /**
+   * Creates a Vec3 instance from the given direction value
+   */
+  static from(direction: Direction): Vec3;
+  /**
+   * Creates a Vec3 instance from the given array
+   */
+  static from(array: number[]): Vec3;
+  static from(v: Vector3 | Direction | number[]): Vec3 {
+    switch (v) {
+      case Direction.Down:
+        return Vec3.Down;
+      case Direction.East:
+        return Vec3.Right;
+      case Direction.North:
+        return Vec3.Back;
+      case Direction.South:
+        return Vec3.Forward;
+      case Direction.Up:
+        return Vec3.Up;
+      case Direction.West:
+        return Vec3.Left;
+      default:
+        if (Array.isArray(v)) {
+          return new Vec3(v[0], v[1], v[2]);
+        }
+        return new Vec3(v.x, v.y, v.z);
     }
-    const rad = (val * Math.PI) / 180;
-    return new Vec3(-Math.sin(rad), 0, Math.cos(rad));
   }
 
   /**
-   * Assigns the values of the passed in vector to this vector. Returns itself.
+   * Creates a new Vec3 from the given rotation value
    */
-  assign(v: Partial<Vector3>): this {
-    if (v.x !== undefined) this.x = v.x;
-    if (v.y !== undefined) this.y = v.y;
-    if (v.z !== undefined) this.z = v.z;
-    return this;
+  static fromRotation(rotation: Vector2): Vec3;
+  /**
+   * Creates a new Vec3 from the given yaw and pitch value
+   */
+  static fromRotation(yaw: number, pitch?: number): Vec3;
+  static fromRotation(val: Vector2 | number, pitch?: number): Vec3 {
+    let yaw: number;
+    if (typeof val === "number") {
+      yaw = val;
+    } else {
+      yaw = val.y;
+      pitch = val.x;
+    }
+    const psi = (yaw * Math.PI) / 180;
+    if (pitch === undefined) {
+      return new Vec3(-Math.sin(psi), 0, Math.cos(psi));
+    }
+    const theta = (pitch * Math.PI) / 180;
+    return new Vec3(
+      -Math.cos(theta) * Math.sin(psi),
+      -Math.sin(theta),
+      Math.cos(theta) * Math.cos(psi),
+    );
+  }
+
+  /**
+   * Sets the X value of the vector
+   * @param value The new X value
+   * @returns A new vector with the updated value
+   */
+  setX(value: number): Vec3 {
+    return new Vec3(value, this.y, this.z);
+  }
+
+  /**
+   * Sets the Y value of the vector
+   * @param value The new Y value
+   * @returns A new vector with the updated value
+   */
+  setY(value: number): Vec3 {
+    return new Vec3(this.x, value, this.z);
+  }
+
+  /**
+   * Sets the Z value of the vector
+   * @param value The new Z value
+   * @returns A new vector with the updated value
+   */
+  setZ(value: number): Vec3 {
+    return new Vec3(this.x, this.y, value);
   }
 
   /**
@@ -102,6 +158,29 @@ export class Vec3 {
    */
   equals(other: Vector3): boolean {
     return Vec3.equals(this, other);
+  }
+
+  static applyOffset(location: Vector3, rotation: Vector2, offset: Partial<Vector3>): Vec3 {
+    const yaw = rotation.y * (Math.PI / 180);
+    const pitch = rotation.x * (Math.PI / 180);
+
+    const cosPitch = Math.cos(pitch);
+    const sinPitch = Math.sin(pitch);
+    const cosYaw = Math.cos(yaw);
+    const sinYaw = Math.sin(yaw);
+
+    const right = new Vec3(cosYaw, 0, sinYaw);
+    const up = new Vec3(sinYaw * -sinPitch, cosPitch, cosYaw * sinPitch);
+    const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
+
+    return Vec3.from(location)
+      .add(right.scale(offset.x ?? 0))
+      .add(up.scale(offset.y ?? 0))
+      .add(forward.scale(offset.z ?? 0));
+  }
+
+  applyOffset(rotation: Vector2, offset: Partial<Vector3>): Vec3 {
+    return Vec3.applyOffset(this, rotation, offset);
   }
 
   /**
@@ -214,7 +293,7 @@ export class Vec3 {
   /**
    * Calculate the distance between two vectors
    */
-  distanceTo(other: Vector3): number {
+  distance(other: Vector3): number {
     return Vec3.distance(this, other);
   }
 
@@ -462,6 +541,14 @@ export class Vec3 {
    */
   rotateZ(a: number): Vec3 {
     return Vec3.rotateZ(this, a);
+  }
+
+  static toArray(v: Vector3): number[] {
+    return [v.x, v.y, v.z];
+  }
+
+  toArray(): number[] {
+    return Vec3.toArray(this);
   }
 
   /**

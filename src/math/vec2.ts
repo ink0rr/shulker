@@ -2,20 +2,10 @@ import { Vector2 } from "@minecraft/server";
 import { clampNumber } from "./utils.js";
 
 export class Vec2 {
-  x: number;
-  y: number;
-
-  constructor(vector2: Vector2);
-  constructor(x: number, y: number);
-  constructor(first: number | Vector2, y?: number) {
-    if (typeof first === "object") {
-      this.x = first.x;
-      this.y = first.y;
-    } else {
-      this.x = first;
-      this.y = y ?? 0;
-    }
-  }
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+  ) {}
 
   /**
    * Shorthand for `new Vec2(0, -1)`
@@ -55,12 +45,18 @@ export class Vec2 {
   }
 
   /**
-   * Assigns the values of the passed in vector to this vector. Returns itself.
+   * Creates a Vec2 instance from the given vector value
    */
-  assign(v: Partial<Vector2>): this {
-    if (v.x !== undefined) this.x = v.x;
-    if (v.y !== undefined) this.y = v.y;
-    return this;
+  static from(vector: Vector2): Vec2;
+  /**
+   * Creates a Vec2 instance from the given array
+   */
+  static from(array: number[]): Vec2;
+  static from(v: Vector2 | number[]): Vec2 {
+    if (Array.isArray(v)) {
+      return new Vec2(v[0], v[1]);
+    }
+    return new Vec2(v.x, v.y);
   }
 
   /**
@@ -75,6 +71,24 @@ export class Vec2 {
    */
   equals(other: Vector2): boolean {
     return Vec2.equals(this, other);
+  }
+
+  /**
+   * Sets the X value of the vector
+   * @param value The new X value
+   * @returns A new vector with the updated value
+   */
+  setX(value: number): Vec2 {
+    return new Vec2(value, this.y);
+  }
+
+  /**
+   * Sets the Y value of the vector
+   * @param value The new Y value
+   * @returns A new vector with the updated value
+   */
+  setY(value: number): Vec2 {
+    return new Vec2(this.x, value);
   }
 
   /**
@@ -298,6 +312,14 @@ export class Vec2 {
    */
   lerp(other: Vector2, t: number): Vec2 {
     return Vec2.lerp(this, other, t);
+  }
+
+  static toArray(v: Vector2): number[] {
+    return [v.x, v.y];
+  }
+
+  toArray(): number[] {
+    return Vec2.toArray(this);
   }
 
   /**

@@ -1,5 +1,4 @@
 import { Entity, PlayAnimationOptions } from "@minecraft/server";
-import { AnimationIdentifier } from "bedrock-ts";
 import { getAllPlayers } from "./players.js";
 
 export type PlayAnimationState<T extends string = string> = {
@@ -63,7 +62,7 @@ export class PlayAnimationController<T extends string> {
    * @param entity The entity to play the animation on.
    */
   play(entity: Entity) {
-    const players = getAllPlayers().map((p) => p.name);
+    const players = getAllPlayers();
     for (const [animationName, options] of this.animations) {
       options.players = players;
       entity.playAnimation(animationName, options);
@@ -79,12 +78,12 @@ export class PlayAnimationController<T extends string> {
    */
   transitionTo(
     entity: Entity,
-    animationName: AnimationIdentifier,
+    animationName: string,
     options?: Omit<PlayAnimationOptions, "controller">,
   ) {
     const playOptions: PlayAnimationOptions = {
       controller: this.id,
-      players: getAllPlayers().map((p) => p.name),
+      players: getAllPlayers(),
     };
     if (options) {
       Object.assign(playOptions, options);

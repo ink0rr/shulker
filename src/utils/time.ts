@@ -1,4 +1,4 @@
-import { system, TimeOfDay, world } from "@minecraft/server";
+import { TimeOfDay, system, world } from "@minecraft/server";
 
 type TimeEventHandler = (time: TimeOfDay, initial: boolean) => void;
 let handlerList: TimeEventHandler[];
