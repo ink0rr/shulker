@@ -1,6 +1,6 @@
 {
   "name": "shulker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "prepack": "tsdown ./src/index.ts && bun run scripts/prepack.js"
