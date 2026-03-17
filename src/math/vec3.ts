@@ -1,5 +1,6 @@
 import { Direction, Vector2, Vector3 } from "@minecraft/server";
 import { clampNumber } from "./utils.js";
+import { Vec2 } from "./vec2.js";
 
 export class Vec3 {
   constructor(
@@ -541,6 +542,23 @@ export class Vec3 {
    */
   rotateZ(a: number): Vec3 {
     return Vec3.rotateZ(this, a);
+  }
+
+  /**
+   * Converts vector into yaw and pitch rotation value.
+   */
+  toRotation(): Vec2 {
+    return Vec3.toRotation(this);
+  }
+
+  /**
+   * Converts vector into yaw and pitch rotation value.
+   */
+  static toRotation(v: Vector3): Vec2 {
+    const hLen = Math.sqrt(v.x ** 2 + v.z ** 2);
+    const pitch = Math.atan2(-v.y, hLen) * (180 / Math.PI);
+    const yaw = -Math.atan2(v.x, v.z) * (180 / Math.PI);
+    return new Vec2(pitch, yaw);
   }
 
   static toArray(v: Vector3): number[] {

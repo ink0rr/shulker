@@ -312,6 +312,45 @@ describe("Vec3 static", () => {
       expect(result).toBeCloseTo(0);
     });
   });
+
+  describe("Vec3.toRotation", () => {
+    it("converts forward vector to zero rotation", () => {
+      const result = Vec3.toRotation(Vec3.Forward);
+      expect(result.x).toBeCloseTo(0);
+      expect(result.y).toBeCloseTo(0);
+    });
+
+    it("converts right vector to yaw -90", () => {
+      const result = Vec3.toRotation(Vec3.Right);
+      expect(result.x).toBeCloseTo(0);
+      expect(result.y).toBeCloseTo(-90);
+    });
+
+    it("converts up vector to pitch -90", () => {
+      const result = Vec3.toRotation(Vec3.Up);
+      expect(result.x).toBeCloseTo(-90);
+      expect(result.y).toBeCloseTo(0);
+    });
+
+    it("converts down vector (0, -1, 0) to pitch 90", () => {
+      const result = Vec3.toRotation(Vec3.Down);
+      expect(result.x).toBeCloseTo(90);
+      expect(result.y).toBeCloseTo(0);
+    });
+
+    it("returns the same rotation regardless of vector magnitude", () => {
+      const r1 = Vec3.toRotation({ x: 0, y: 0, z: 1 });
+      const r2 = Vec3.toRotation({ x: 0, y: 0, z: 5 });
+      expect(r1.x).toBeCloseTo(r2.x);
+      expect(r1.y).toBeCloseTo(r2.y);
+    });
+
+    it("returns zero rotation for a zero vector without NaN", () => {
+      const result = Vec3.toRotation({ x: 0, y: 0, z: 0 });
+      expect(result.x).not.toBeNaN();
+      expect(result.y).not.toBeNaN();
+    });
+  });
 });
 
 /**
@@ -596,6 +635,13 @@ describe("Vec3 instance", () => {
     const axis = Vec3.Up;
     const resultA = Vec3.signedAngle(vectorA, vectorB, axis);
     const resultB = vectorA.signedAngle(vectorB, axis);
+    expect(resultA).toEqual(resultB);
+  });
+
+  it("should be able to convert to rotation with the same result as the static method", () => {
+    const vectorA = new Vec3(1, 2, 3);
+    const resultA = Vec3.toRotation(vectorA);
+    const resultB = vectorA.toRotation();
     expect(resultA).toEqual(resultB);
   });
 });
