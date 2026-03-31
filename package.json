@@ -12,14 +12,14 @@
     "server-ui.d.mts"
   ],
   "peerDependencies": {
-    "@minecraft/server": "^2.4.0",
+    "@minecraft/server": "^2.6.0",
     "@minecraft/server-ui": "^2.0.0"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "^22.0.4",
-    "@types/bun": "^1.3.5",
-    "dprint": "^0.50.2",
-    "tsdown": "^0.18.4",
-    "typescript": "^5.9.3"
+    "@tsconfig/node-lts": "^24.0.0",
+    "@types/bun": "^1.3.11",
+    "dprint": "^0.53.1",
+    "tsdown": "^0.21.7",
+    "typescript": "^6.0.2"
   }
 }
