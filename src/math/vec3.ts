@@ -150,14 +150,14 @@ export class Vec3 {
   /**
    * Check the equality of two vectors
    */
-  static equals(a: Vector3, b: Vector3): boolean {
-    return a.x === b.x && a.y === b.y && a.z === b.z;
+  static equals(a: Vector3, b?: Partial<Vector3>): boolean {
+    return a.x === b?.x && a.y === b.y && a.z === b.z;
   }
 
   /**
    * Check the equality of two vectors
    */
-  equals(other: Vector3): boolean {
+  equals(other?: Partial<Vector3>): boolean {
     return Vec3.equals(this, other);
   }
 

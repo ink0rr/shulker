@@ -62,14 +62,14 @@ export class Vec2 {
   /**
    * Check the equality of two vectors
    */
-  static equals(a: Vector2, b: Vector2): boolean {
-    return a.x === b.x && a.y === b.y;
+  static equals(a: Vector2, b?: Partial<Vector2>): boolean {
+    return a.x === b?.x && a.y === b.y;
   }
 
   /**
    * Check the equality of two vectors
    */
-  equals(other: Vector2): boolean {
+  equals(other?: Partial<Vector2>): boolean {
     return Vec2.equals(this, other);
   }
 
