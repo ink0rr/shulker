@@ -61,7 +61,7 @@ export function getComponent<T extends string>(
   componentId: T,
 ): EntityComponentReturnType<T> | undefined {
   if (!cache) {
-    cache = new Map();
+    cache = new WeakMap();
     system.run(registerEvents);
   }
   let entityComponents = cache.get(entity);
