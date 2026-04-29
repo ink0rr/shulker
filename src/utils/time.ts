@@ -30,7 +30,9 @@ export const timeEvents = {
     handlerList.push(callback);
   },
   unsubscribe(callback: TimeEventHandler) {
-    handlerList.filter((cb) => cb !== callback);
+    if (handlerList) {
+      handlerList = handlerList.filter((cb) => cb !== callback);
+    }
   },
 } as const;
 

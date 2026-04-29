@@ -30,6 +30,6 @@ export const scriptEvents = {
    * @param id Scriptevent id
    */
   unsubscribe(id: string) {
-    events.delete(id);
+    events?.delete(id);
   },
 } as const;
