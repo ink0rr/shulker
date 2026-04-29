@@ -1,5 +1,5 @@
 import { Vector2 } from "@minecraft/server";
-import { clampNumber } from "./utils.js";
+import { clamp } from "./utils.js";
 
 export class Vec2 {
   constructor(
@@ -280,12 +280,12 @@ export class Vec2 {
    */
   static clamp(v: Vector2, limits?: { min?: Partial<Vector2>; max?: Partial<Vector2> }): Vec2 {
     return new Vec2(
-      clampNumber(
+      clamp(
         v.x,
         limits?.min?.x ?? Number.MIN_SAFE_INTEGER,
         limits?.max?.x ?? Number.MAX_SAFE_INTEGER,
       ),
-      clampNumber(
+      clamp(
         v.y,
         limits?.min?.y ?? Number.MIN_SAFE_INTEGER,
         limits?.max?.y ?? Number.MAX_SAFE_INTEGER,

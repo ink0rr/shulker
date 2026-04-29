@@ -1,5 +1,5 @@
 import { Direction, Vector2, Vector3 } from "@minecraft/server";
-import { clampNumber } from "./utils.js";
+import { clamp } from "./utils.js";
 import { Vec2 } from "./vec2.js";
 
 export class Vec3 {
@@ -433,17 +433,17 @@ export class Vec3 {
    */
   static clamp(v: Vector3, limits?: { min?: Partial<Vector3>; max?: Partial<Vector3> }): Vec3 {
     return new Vec3(
-      clampNumber(
+      clamp(
         v.x,
         limits?.min?.x ?? Number.MIN_SAFE_INTEGER,
         limits?.max?.x ?? Number.MAX_SAFE_INTEGER,
       ),
-      clampNumber(
+      clamp(
         v.y,
         limits?.min?.y ?? Number.MIN_SAFE_INTEGER,
         limits?.max?.y ?? Number.MAX_SAFE_INTEGER,
       ),
-      clampNumber(
+      clamp(
         v.z,
         limits?.min?.z ?? Number.MIN_SAFE_INTEGER,
         limits?.max?.z ?? Number.MAX_SAFE_INTEGER,
