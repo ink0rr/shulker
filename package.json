@@ -12,8 +12,8 @@
     "server-ui.d.mts"
   ],
   "peerDependencies": {
-    "@minecraft/server": "^2.6.0",
-    "@minecraft/server-ui": "^2.0.0"
+    "@minecraft/server": "^2.9.0",
+    "@minecraft/server-ui": "^2.1.0"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^24.0.0",
