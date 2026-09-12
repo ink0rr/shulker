@@ -175,7 +175,7 @@ export const ScriptItem = {
         itemStack: item,
         victim: hitEntity,
       });
-    });
+    }, { entityTypes: ["minecraft:player"] });
 
     world.afterEvents.entityDie.subscribe(({ damageSource, deadEntity }) => {
       const player = damageSource.damagingEntity;
