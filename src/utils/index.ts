@@ -4,6 +4,7 @@ export * from "./component.js";
 export * from "./debug.js";
 export * from "./decorators.js";
 export * from "./interval.js";
+export * from "./molang_runner.js";
 export * from "./playanimation.js";
 export * from "./players.js";
 export * from "./projectile.js";
