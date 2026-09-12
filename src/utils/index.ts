@@ -2,6 +2,7 @@ export * from "./active_dimensions.js";
 export * from "./component.js";
 export * from "./debug.js";
 export * from "./interval.js";
+export * from "./molang_sender.js";
 export * from "./playanimation.js";
 export * from "./players.js";
 export * from "./projectile.js";
