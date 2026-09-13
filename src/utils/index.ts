@@ -2,6 +2,7 @@ export * from "./active_dimensions.js";
 export * from "./async_job.js";
 export * from "./component.js";
 export * from "./debug.js";
+export * from "./decorators.js";
 export * from "./interval.js";
 export * from "./playanimation.js";
 export * from "./players.js";
