@@ -1,8 +1,6 @@
 import { Entity, Player, system } from "@minecraft/server";
 import { getAllPlayers } from "./players.js";
 
-const MOLANG_TICK_RADIX = 1_000_000;
-
 export type ExecuteMolangOptions = {
   /** Whether to let the expressions execute in UI context. */
   includePaperDoll?: boolean;
@@ -14,9 +12,11 @@ export type ExecuteMolangOptions = {
  * Utility class for running Molang expressions on client-side entities.
  */
 export class MolangRunner {
-  private static registeredIds = new Set<string>();
+  private static readonly animationIds = new Set<string>();
+  private static nextId = 0;
+
+  private readonly prefix = `v.__mr${system.currentTick}_${MolangRunner.nextId++}`;
   private execId = 0;
-  private execTick = -1;
 
   /**
    * @param animationId An empty client animation id
@@ -35,10 +35,10 @@ export class MolangRunner {
    * ```
    */
   constructor(private readonly animationId: string) {
-    if (MolangRunner.registeredIds.has(animationId)) {
+    if (MolangRunner.animationIds.has(animationId)) {
       throw new Error("Cannot create another MolangRunner instance with the same animationId");
     }
-    MolangRunner.registeredIds.add(animationId);
+    MolangRunner.animationIds.add(animationId);
   }
 
   /**
@@ -58,30 +58,23 @@ export class MolangRunner {
    * ```
    */
   exec(entity: Entity, expressions: readonly string[], opts?: ExecuteMolangOptions): void {
-    const currentTick = system.currentTick;
-    if (this.execTick !== currentTick) {
-      this.execTick = currentTick;
-      this.execId = 0;
-    }
-
-    const tickHigh = Math.floor(currentTick / MOLANG_TICK_RADIX);
-    const tickLow = currentTick % MOLANG_TICK_RADIX;
     const execId = this.execId++;
+    const group = Math.floor(execId / 1_000_000);
+    const index = execId % 1_000_000;
+    const marker = `${this.prefix}_${group}`;
 
-    const condition = `(v.__th??-1)<${tickHigh}` +
-      `||((v.__th??-1)==${tickHigh}&&((v.__tl??-1)<${tickLow}` +
-      `||((v.__tl??-1)==${tickLow}&&(v.__x??-1)<${execId})))`;
+    const condition = `(${marker}??-1)<${index}`;
 
     const expr = opts?.includePaperDoll
       ? expressions.join(";")
       : `!q.is_in_ui?{${expressions.join(";")}}`;
 
-    const update = `v.__th=${tickHigh};v.__tl=${tickLow};v.__x=${execId}`;
+    const update = `${marker}=${index}`;
 
     entity.playAnimation(this.animationId, {
       controller: this.animationId,
       players: opts?.players ?? getAllPlayers(),
-      stopExpression: `(${condition})?{${expr};${update}};return 0;`,
+      stopExpression: `${condition}?{${expr};${update}};return 0;`,
     });
   }
 }
