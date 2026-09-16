@@ -1,6 +1,8 @@
 import { Entity, Player, system } from "@minecraft/server";
 import { getAllPlayers } from "./players.js";
 
+const MOLANG_TICK_RADIX = 1_000_000;
+
 export type ExecuteMolangOptions = {
   /** Whether to let the expressions execute in UI context. */
   includePaperDoll?: boolean;
@@ -13,6 +15,8 @@ export type ExecuteMolangOptions = {
  */
 export class MolangRunner {
   private static registeredIds = new Set<string>();
+  private execId = 0;
+  private execTick = -1;
 
   /**
    * @param animationId An empty client animation id
@@ -55,14 +59,29 @@ export class MolangRunner {
    */
   exec(entity: Entity, expressions: readonly string[], opts?: ExecuteMolangOptions): void {
     const currentTick = system.currentTick;
+    if (this.execTick !== currentTick) {
+      this.execTick = currentTick;
+      this.execId = 0;
+    }
+
+    const tickHigh = Math.floor(currentTick / MOLANG_TICK_RADIX);
+    const tickLow = currentTick % MOLANG_TICK_RADIX;
+    const execId = this.execId++;
+
+    const condition = `(v.__th??-1)<${tickHigh}` +
+      `||((v.__th??-1)==${tickHigh}&&((v.__tl??-1)<${tickLow}` +
+      `||((v.__tl??-1)==${tickLow}&&(v.__x??-1)<${execId})))`;
+
     const expr = opts?.includePaperDoll
       ? expressions.join(";")
       : `!q.is_in_ui?{${expressions.join(";")}}`;
 
+    const update = `v.__th=${tickHigh};v.__tl=${tickLow};v.__x=${execId}`;
+
     entity.playAnimation(this.animationId, {
       controller: this.animationId,
       players: opts?.players ?? getAllPlayers(),
-      stopExpression: `(v.__??-1)<${currentTick}?{${expr};v.__=${currentTick}};return 0;`,
+      stopExpression: `(${condition})?{${expr};${update}};return 0;`,
     });
   }
 }
