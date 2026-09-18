@@ -6,8 +6,8 @@ import { BlockCustomComponent, ItemCustomComponent, system } from "@minecraft/se
 
 type EventCallback<T> = (event: T) => any;
 
-type Signal<T> = {
-  subscribe(callback: EventCallback<T>): void;
+type Signal<T, U> = {
+  subscribe(callback: EventCallback<T>, options?: U): void;
 };
 
 /**
@@ -25,11 +25,11 @@ type Signal<T> = {
  * }
  * ```
  */
-export function Subscribe<T>(signal: Signal<T>) {
+export function Subscribe<T, U>(signal: Signal<T, U>, options?: U) {
   return (target: Function, _: string, descriptor: TypedPropertyDescriptor<EventCallback<T>>) => {
     const method = descriptor.value;
     if (method) {
-      signal.subscribe(method.bind(target));
+      signal.subscribe(method.bind(target), options);
     }
   };
 }
