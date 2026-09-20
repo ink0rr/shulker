@@ -3,6 +3,7 @@ export * from "./async_job.js";
 export * from "./component.js";
 export * from "./debug.js";
 export * from "./decorators.js";
+export * from "./entity_query.js";
 export * from "./interval.js";
 export * from "./molang_runner.js";
 export * from "./playanimation.js";
