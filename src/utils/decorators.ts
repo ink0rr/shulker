@@ -26,7 +26,11 @@ type Signal<T, U> = {
  * ```
  */
 export function Subscribe<T, U>(signal: Signal<T, U>, options?: U) {
-  return (target: Function, _: string, descriptor: TypedPropertyDescriptor<EventCallback<T>>) => {
+  return <V extends EventCallback<T>>(
+    target: Function,
+    _: string,
+    descriptor: TypedPropertyDescriptor<V>,
+  ) => {
     const method = descriptor.value;
     if (!method) return;
     if (options !== undefined) {
