@@ -28,8 +28,11 @@ type Signal<T, U> = {
 export function Subscribe<T, U>(signal: Signal<T, U>, options?: U) {
   return (target: Function, _: string, descriptor: TypedPropertyDescriptor<EventCallback<T>>) => {
     const method = descriptor.value;
-    if (method) {
+    if (!method) return;
+    if (options !== undefined) {
       signal.subscribe(method.bind(target), options);
+    } else {
+      signal.subscribe(method.bind(target));
     }
   };
 }
