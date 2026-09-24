@@ -2,6 +2,9 @@ import { system } from "@minecraft/server";
 
 const runIds = new Map<string, number>();
 
+/**
+ * @deprecated Will be removed in 2.0.0
+ */
 export const interval = {
   /**
    * Runs a set of code on an interval.

@@ -2,6 +2,9 @@ import { system } from "@minecraft/server";
 
 const runIds = new Map<string, number>();
 
+/**
+ * @deprecated Will be removed in 2.0.0
+ */
 export const timeout = {
   /**
    * Runs a set of code at a future time specified by tickDelay

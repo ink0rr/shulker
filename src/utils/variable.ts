@@ -1,8 +1,12 @@
 import { Entity } from "@minecraft/server";
-import { getAllPlayers } from "./players.js";
+import { MolangRunner } from "./molang_runner.js";
+
+let molangRunner: MolangRunner;
 
 /**
  * Set a variable to be used in client-side entities
+ * @deprecated Will be removed in 2.0.0; use {@link MolangRunner} instead
+ *
  * @param entity - The entity to set the variable on
  * @param key - The key of the variable
  * @param value - The value of the variable
@@ -22,13 +26,9 @@ import { getAllPlayers } from "./players.js";
  * ```
  */
 export function setVariable(entity: Entity, key: string, value: string | number) {
-  const controller = `${key}.${value}`;
   if (typeof value === "string") {
     value = `'${value}'`;
   }
-  entity.playAnimation("animation.humanoid.base_pose", {
-    controller,
-    stopExpression: `!q.is_in_ui ? {v.${key} = ${value};}; return 1;`,
-    players: getAllPlayers(),
-  });
+  molangRunner ??= new MolangRunner("animation.humanoid.base_pose");
+  molangRunner.exec(entity, [`v.${key} = ${value}`]);
 }

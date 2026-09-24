@@ -17,6 +17,9 @@ function registerEvents() {
   });
 }
 
+/**
+ * @deprecated Will be removed in 2.0.0
+ */
 export const timeEvents = {
   /**
    * Subscribes to time of day changes.

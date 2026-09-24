@@ -4,6 +4,7 @@ import {
   Entity,
   EntityComponentTypes,
   EquipmentSlot,
+  ItemCustomComponent,
   ItemStack,
   Player,
   Vector3,
@@ -94,6 +95,9 @@ export type ScriptItemUseEvent = ScriptItemEvent & {
   useDuration: number;
 };
 
+/**
+ * @deprecated Will be removed in 2.0.0; use {@link ItemCustomComponent} instead.
+ */
 export const ScriptItem = {
   register(itemList: ScriptItem[]) {
     const items = new Map<string, ScriptItem>();

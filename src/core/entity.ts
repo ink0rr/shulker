@@ -90,6 +90,9 @@ export type ScriptEntityDataDrivenTriggerEvent = ScriptEntityEvent & {
   getModifiers(): DefinitionModifier[];
 };
 
+/**
+ * @deprecated Will be removed in 2.0.0
+ */
 export const ScriptEntity = {
   register(entityList: ScriptEntity[]) {
     const entities = new Map<string, ScriptEntity>();

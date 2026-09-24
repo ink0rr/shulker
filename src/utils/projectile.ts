@@ -1,4 +1,10 @@
-import { Entity, EntityComponentTypes, Vector3, system } from "@minecraft/server";
+import {
+  Entity,
+  EntityComponentTypes,
+  EntityProjectileComponent,
+  Vector3,
+  system,
+} from "@minecraft/server";
 import { Vec3 } from "../math/vec3.js";
 
 export type ShootProjectileOptions = {
@@ -10,11 +16,15 @@ export type ShootProjectileOptions = {
   direction?: Vector3;
 };
 
+/**
+ * @deprecated Will be removed in 2.0.0; enable [isolated_physics](https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_projectile?view=minecraft-bedrock-stable#isolated_physics)
+ * and use {@link EntityProjectileComponent.shoot} instead.
+ */
 export function shootProjectile(
   shooter: Entity,
   identifier: string,
   options?: ShootProjectileOptions,
-) {
+): EntityProjectileComponent {
   const {
     power = 1,
     gravity = 0.05,
