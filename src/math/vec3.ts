@@ -161,6 +161,9 @@ export class Vec3 {
     return Vec3.equals(this, other);
   }
 
+  /**
+   * Applies a rotation-relative offset to location
+   */
   static applyOffset(location: Vector3, rotation: Vector2, offset: Partial<Vector3>): Vec3 {
     const yaw = rotation.y * (Math.PI / 180);
     const pitch = rotation.x * (Math.PI / 180);
@@ -170,16 +173,20 @@ export class Vec3 {
     const cosYaw = Math.cos(yaw);
     const sinYaw = Math.sin(yaw);
 
-    const right = new Vec3(cosYaw, 0, sinYaw);
-    const up = new Vec3(sinYaw * -sinPitch, cosPitch, cosYaw * sinPitch);
-    const forward = new Vec3(-sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch);
+    const offsetX = offset.x ?? 0;
+    const offsetY = offset.y ?? 0;
+    const offsetZ = offset.z ?? 0;
 
-    return Vec3.from(location)
-      .add(right.scale(offset.x ?? 0))
-      .add(up.scale(offset.y ?? 0))
-      .add(forward.scale(offset.z ?? 0));
+    const dx = cosYaw * offsetX - sinYaw * sinPitch * offsetY - sinYaw * cosPitch * offsetZ;
+    const dy = cosPitch * offsetY - sinPitch * offsetZ;
+    const dz = sinYaw * offsetX + cosYaw * sinPitch * offsetY + cosYaw * cosPitch * offsetZ;
+
+    return new Vec3(location.x + dx, location.y + dy, location.z + dz);
   }
 
+  /**
+   * Applies a rotation-relative offset to this vector
+   */
   applyOffset(rotation: Vector2, offset: Partial<Vector3>): Vec3 {
     return Vec3.applyOffset(this, rotation, offset);
   }
@@ -376,8 +383,10 @@ export class Vec3 {
    */
   static signedAngle(from: Vector3, to: Vector3, axis: Vector3): number {
     const unsignedAngle = Vec3.angle(from, to);
-    const cross = Vec3.cross(from, to);
-    const sign = Math.sign(Vec3.dot(cross, axis));
+    const crossX = from.y * to.z - from.z * to.y;
+    const crossY = from.z * to.x - from.x * to.z;
+    const crossZ = from.x * to.y - from.y * to.x;
+    const sign = Math.sign(crossX * axis.x + crossY * axis.y + crossZ * axis.z);
     return unsignedAngle * sign;
   }
 
@@ -512,7 +521,7 @@ export class Vec3 {
     const sinTheta = Math.sin(theta);
     const ta = Math.sin((1.0 - t) * theta) / sinTheta;
     const tb = Math.sin(t * theta) / sinTheta;
-    return Vec3.add(Vec3.scale(a, ta), Vec3.scale(b, tb));
+    return new Vec3(a.x * ta + b.x * tb, a.y * ta + b.y * tb, a.z * ta + b.z * tb);
   }
 
   /**
@@ -607,7 +616,9 @@ export class Vec3 {
   static toString(v: Vector3, options?: { decimals?: number; delimiter?: string }): string {
     const decimals = options?.decimals ?? 2;
     const delimiter = options?.delimiter ?? " ";
-    return [v.x, v.y, v.z].map((n) => n.toFixed(decimals)).join(delimiter);
+    return v.x.toFixed(decimals) + delimiter +
+      v.y.toFixed(decimals) + delimiter +
+      v.z.toFixed(decimals);
   }
 
   /**

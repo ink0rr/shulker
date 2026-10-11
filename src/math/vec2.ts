@@ -370,7 +370,7 @@ export class Vec2 {
   static toString(v: Vector2, options?: { decimals?: number; delimiter?: string }): string {
     const decimals = options?.decimals ?? 2;
     const delimiter = options?.delimiter ?? " ";
-    return [v.x, v.y].map((n) => n.toFixed(decimals)).join(delimiter);
+    return v.x.toFixed(decimals) + delimiter + v.y.toFixed(decimals);
   }
 
   /**
