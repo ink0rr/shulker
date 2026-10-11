@@ -1,4 +1,5 @@
 export * from "./active_dimensions.js";
+export * from "./actor_storage.js";
 export * from "./async_job.js";
 export * from "./component.js";
 export * from "./debug.js";
