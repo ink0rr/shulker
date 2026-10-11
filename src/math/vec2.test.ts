@@ -1,5 +1,6 @@
 import { Vector2 } from "@minecraft/server";
 import { describe, expect, it } from "bun:test";
+import { MutVec2 } from "./mut_vec2.js";
 import { Vec2 } from "./vec2.js";
 
 describe("Vec2 static", () => {
@@ -399,5 +400,17 @@ describe("Vec2 instance", () => {
 
     const resultB = vectorA.lerp(vectorB, ratio);
     expect(resultA).toEqual(resultB);
+  });
+
+  it("toMutable creates a MutVec2 with the same components", () => {
+    const result = new Vec2(1, 2).toMutable();
+    expect(result).toBeInstanceOf(MutVec2);
+    expect(result).toEqual(new MutVec2(1, 2));
+  });
+
+  it("toMutable does not alias the source", () => {
+    const source = new Vec2(1, 2);
+    source.toMutable().add({ x: 10 });
+    expect(source.x).toBe(1);
   });
 });

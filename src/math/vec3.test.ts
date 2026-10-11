@@ -1,5 +1,6 @@
 import { Direction, Vector2, Vector3 } from "@minecraft/server";
 import { describe, expect, it } from "bun:test";
+import { MutVec3 } from "./mut_vec3.js";
 import { Vec3 } from "./vec3.js";
 
 describe("Vec3 static", () => {
@@ -666,5 +667,17 @@ describe("Vec3 instance", () => {
     const resultA = Vec3.toRotation(vectorA);
     const resultB = vectorA.toRotation();
     expect(resultA).toEqual(resultB);
+  });
+
+  it("toMutable creates a MutVec3 with the same components", () => {
+    const result = new Vec3(1, 2, 3).toMutable();
+    expect(result).toBeInstanceOf(MutVec3);
+    expect(result).toEqual(new MutVec3(1, 2, 3));
+  });
+
+  it("toMutable does not alias the source", () => {
+    const source = new Vec3(1, 2, 3);
+    source.toMutable().add({ x: 10 });
+    expect(source.x).toBe(1);
   });
 });

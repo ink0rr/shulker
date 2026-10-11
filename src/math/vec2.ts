@@ -1,7 +1,8 @@
 import { Vector2 } from "@minecraft/server";
+import { MutVec2 } from "./mut_vec2.js";
 import { clamp } from "./utils.js";
 
-export class Vec2 {
+export class Vec2 implements Vector2 {
   constructor(
     public readonly x: number,
     public readonly y: number,
@@ -356,12 +357,25 @@ export class Vec2 {
     return Vec2.lerp(this, other, t);
   }
 
+  /**
+   * Converts a vector into an `[x, y]` array
+   */
   static toArray(v: Vector2): number[] {
     return [v.x, v.y];
   }
 
+  /**
+   * Converts the vector into an `[x, y]` array
+   */
   toArray(): number[] {
     return Vec2.toArray(this);
+  }
+
+  /**
+   * Creates a mutable MutVec2 copy of this vector
+   */
+  toMutable(): MutVec2 {
+    return new MutVec2(this.x, this.y);
   }
 
   /**

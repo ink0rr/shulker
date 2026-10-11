@@ -1,8 +1,9 @@
 import { Direction, Vector2, Vector3 } from "@minecraft/server";
+import { MutVec3 } from "./mut_vec3.js";
 import { clamp } from "./utils.js";
 import { Vec2 } from "./vec2.js";
 
-export class Vec3 {
+export class Vec3 implements Vector3 {
   constructor(
     public readonly x: number,
     public readonly y: number,
@@ -602,12 +603,25 @@ export class Vec3 {
     return new Vec2(pitch, yaw);
   }
 
+  /**
+   * Converts a vector into an `[x, y, z]` array
+   */
   static toArray(v: Vector3): number[] {
     return [v.x, v.y, v.z];
   }
 
+  /**
+   * Converts the vector into an `[x, y, z]` array
+   */
   toArray(): number[] {
     return Vec3.toArray(this);
+  }
+
+  /**
+   * Creates a mutable MutVec3 copy of this vector
+   */
+  toMutable(): MutVec3 {
+    return new MutVec3(this.x, this.y, this.z);
   }
 
   /**
