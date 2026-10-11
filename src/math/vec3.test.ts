@@ -63,9 +63,17 @@ describe("Vec3 static", () => {
     expect(result).toEqual({ x: 0, y: 0, z: 1 });
   });
 
+  it("calculates the squared magnitude", () => {
+    expect(Vec3.magnitudeSquared(v1)).toBe(14);
+  });
+
   it("calculates the magnitude", () => {
     const result: number = Vec3.magnitude(v1);
     expect(result).toBeCloseTo(3.74, 2);
+  });
+
+  it("calculates the squared distance between two vectors", () => {
+    expect(Vec3.distanceSquared(v1, v2)).toBe(27);
   });
 
   it("calculates the distance between two vectors", () => {
@@ -478,11 +486,26 @@ describe("Vec3 instance", () => {
     expect(resultTwo).toEqual({ x: 9, y: -18, z: 9 });
   });
 
+  it("should be able to compute the squared magnitude with the same result as the static method", () => {
+    const vectorA = new Vec3(1, 2, 3);
+    const mag = Vec3.magnitudeSquared(vectorA);
+
+    expect(vectorA.magnitudeSquared()).toEqual(mag);
+  });
+
   it("should be able to compute the magnitude with the same result as the static method", () => {
     const vectorA = new Vec3(1, 2, 3);
     const mag = Vec3.magnitude(vectorA);
 
     expect(vectorA.magnitude()).toEqual(mag);
+  });
+
+  it("should be able to compute the squared distance between two vectors with the same result as the static method", () => {
+    const vectorA = new Vec3(1, 2, 3);
+    const vectorB = new Vec3(4, 5, 6);
+    const mag = Vec3.distanceSquared(vectorA, vectorB);
+
+    expect(vectorA.distanceSquared(vectorB)).toEqual(mag);
   });
 
   it("should be able to compute the distance between two vectors with the same result as the static method", () => {

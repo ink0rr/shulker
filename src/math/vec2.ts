@@ -178,10 +178,26 @@ export class Vec2 {
   }
 
   /**
+   * The squared magnitude of a vector.
+   * Cheaper than {@link Vec2.magnitude} for comparisons.
+   */
+  static magnitudeSquared(v: Vector2): number {
+    return v.x * v.x + v.y * v.y;
+  }
+
+  /**
+   * The squared magnitude of a vector.
+   * Cheaper than {@link Vec2.magnitude} for comparisons.
+   */
+  magnitudeSquared(): number {
+    return Vec2.magnitudeSquared(this);
+  }
+
+  /**
    * The magnitude of a vector
    */
   static magnitude(v: Vector2): number {
-    return Math.sqrt(v.x ** 2 + v.y ** 2);
+    return Math.sqrt(Vec2.magnitudeSquared(v));
   }
 
   /**
@@ -192,17 +208,43 @@ export class Vec2 {
   }
 
   /**
-   * Calculate the distance between two vectors
+   * Calculate the squared distance between two vectors.
+   * Cheaper than {@link Vec2.distance} for comparisons.
    */
-  static distance(a: Vector2, b: Vector2): number {
-    return Vec2.subtract(a, b).magnitude();
+  static distanceSquared(a: Vector2, b: Vector2): number {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
+  }
+
+  /**
+   * Calculate the squared distance between two vectors.
+   * Cheaper than {@link Vec2.distance} for comparisons.
+   */
+  distanceSquared(other: Vector2): number {
+    return Vec2.distanceSquared(this, other);
   }
 
   /**
    * Calculate the distance between two vectors
    */
-  distanceTo(other: Vector2): number {
+  static distance(a: Vector2, b: Vector2): number {
+    return Math.sqrt(Vec2.distanceSquared(a, b));
+  }
+
+  /**
+   * Calculate the distance between two vectors
+   */
+  distance(other: Vector2): number {
     return Vec2.distance(this, other);
+  }
+
+  /**
+   * Calculate the distance between two vectors
+   * @deprecated Use {@link Vec2.distance} instead
+   */
+  distanceTo(other: Vector2): number {
+    return this.distance(other);
   }
 
   /**

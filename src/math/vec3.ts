@@ -271,10 +271,26 @@ export class Vec3 {
   }
 
   /**
+   * The squared magnitude of a vector.
+   * Cheaper than {@link Vec3.magnitude} for comparisons.
+   */
+  static magnitudeSquared(v: Vector3): number {
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+  }
+
+  /**
+   * The squared magnitude of a vector.
+   * Cheaper than {@link Vec3.magnitude} for comparisons.
+   */
+  magnitudeSquared(): number {
+    return Vec3.magnitudeSquared(this);
+  }
+
+  /**
    * The magnitude of a vector
    */
   static magnitude(v: Vector3): number {
-    return Math.sqrt(v.x ** 2 + v.y ** 2 + v.z ** 2);
+    return Math.sqrt(Vec3.magnitudeSquared(v));
   }
 
   /**
@@ -285,10 +301,29 @@ export class Vec3 {
   }
 
   /**
+   * Calculate the squared distance between two vectors.
+   * Cheaper than {@link Vec3.distance} for comparisons.
+   */
+  static distanceSquared(a: Vector3, b: Vector3): number {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const dz = a.z - b.z;
+    return dx * dx + dy * dy + dz * dz;
+  }
+
+  /**
+   * Calculate the squared distance between two vectors.
+   * Cheaper than {@link Vec3.distance} for comparisons.
+   */
+  distanceSquared(other: Vector3): number {
+    return Vec3.distanceSquared(this, other);
+  }
+
+  /**
    * Calculate the distance between two vectors
    */
   static distance(a: Vector3, b: Vector3): number {
-    return Vec3.subtract(a, b).magnitude();
+    return Math.sqrt(Vec3.distanceSquared(a, b));
   }
 
   /**
@@ -317,11 +352,8 @@ export class Vec3 {
    * The angle returned is the unsigned angle, so it will always be between 0 and 180 degrees.
    */
   static angle(from: Vector3, to: Vector3): number {
-    const magFrom = Vec3.magnitude(from);
-    const magTo = Vec3.magnitude(to);
-
     const dot = Vec3.dot(from, to);
-    const cos = dot / (magFrom * magTo);
+    const cos = dot / Math.sqrt(Vec3.magnitudeSquared(from) * Vec3.magnitudeSquared(to));
 
     const clampedCos = Math.max(-1, Math.min(1, cos));
 

@@ -56,9 +56,17 @@ describe("Vec2 static", () => {
     expect(result).not.toBe(v1);
   });
 
+  it("calculates the squared magnitude", () => {
+    expect(Vec2.magnitudeSquared(v1)).toBe(5);
+  });
+
   it("calculates the magnitude", () => {
     const result: number = Vec2.magnitude(v1);
     expect(result).toBeCloseTo(2.24, 2);
+  });
+
+  it("calculates the squared distance between two vectors", () => {
+    expect(Vec2.distanceSquared(v1, v2)).toBe(18);
   });
 
   it("calculates the distance between two vectors", () => {
@@ -303,6 +311,13 @@ describe("Vec2 instance", () => {
     expect(result).toEqual(vectorC);
   });
 
+  it("should be able to compute the squared magnitude with the same result as the static method", () => {
+    const vectorA = new Vec2(1, 2);
+    const mag = Vec2.magnitudeSquared(vectorA);
+
+    expect(vectorA.magnitudeSquared()).toEqual(mag);
+  });
+
   it("should be able to compute the magnitude with the same result as the static method", () => {
     const vectorA = new Vec2(1, 2);
     const mag = Vec2.magnitude(vectorA);
@@ -310,12 +325,20 @@ describe("Vec2 instance", () => {
     expect(vectorA.magnitude()).toEqual(mag);
   });
 
+  it("should be able to compute the squared distance between two vectors with the same result as the static method", () => {
+    const vectorA = new Vec2(1, 2);
+    const vectorB = new Vec2(4, 5);
+    const mag = Vec2.distanceSquared(vectorA, vectorB);
+
+    expect(vectorA.distanceSquared(vectorB)).toEqual(mag);
+  });
+
   it("should be able to compute the distance between two vectors with the same result as the static method", () => {
     const vectorA = new Vec2(1, 2);
     const vectorB = new Vec2(4, 5);
     const mag = Vec2.distance(vectorA, vectorB);
 
-    expect(vectorA.distanceTo(vectorB)).toEqual(mag);
+    expect(vectorA.distance(vectorB)).toEqual(mag);
   });
 
   it("should be able to normalize the vector with the same result as the static method", () => {
