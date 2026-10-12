@@ -18,10 +18,10 @@ export class EntityQuery {
   private entities = new Set<Entity>();
 
   /**
-   * @param identifier The entity identifier to track.
+   * @param typeId The entity identifier to track.
    */
-  constructor(identifier: string) {
-    system.run(() => this.init(identifier));
+  constructor(readonly typeId: string) {
+    system.run(() => this.init(typeId));
   }
 
   private init(identifier: string) {
