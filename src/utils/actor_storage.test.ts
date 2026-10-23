@@ -181,15 +181,46 @@ describe("ActorStorage runtime schema", () => {
       second: { type: "number" },
     });
     expect(storage.get(actor, "first")).toBe(10);
-    expect(storage.keys(actor)).toEqual([]);
-    expect(storage.entries(actor)).toEqual([]);
+    expect([...storage.keys(actor)]).toEqual([]);
+    expect([...storage.entries(actor)]).toEqual([]);
     storage.set(actor, "second", 2);
-    expect(storage.keys(actor)).toEqual(["second"]);
-    expect(storage.entries(actor)).toEqual([["second", 2]]);
-    expectTypeOf(storage.keys(actor)).toEqualTypeOf<Array<"first" | "second">>();
+    expect([...storage.keys(actor)]).toEqual(["second"]);
+    expect([...storage.entries(actor)]).toEqual([["second", 2]]);
+    expectTypeOf(storage.keys(actor)).toEqualTypeOf<IterableIterator<"first" | "second">>();
+    expectTypeOf(storage.entries(actor)).toEqualTypeOf<
+      IterableIterator<["first" | "second", number]>
+    >();
     storage.delete(actor, "second");
-    expect(storage.entries(actor)).toEqual([]);
+    expect([...storage.entries(actor)]).toEqual([]);
     expect(storage.get(actor.reload(), "second")).toBeUndefined();
+  });
+
+  it("enumerates keys lazily and loads entries only as they are consumed", () => {
+    const prefix = storageId("iterators");
+    const actor = new MockActor(
+      new Map([
+        ["unrelated", 99],
+        [`__${prefix}|first`, 1],
+        [`__${prefix}|second`, 2],
+      ]),
+    );
+    const storage = new ActorStorage(prefix, {
+      first: { type: "number" },
+      second: { type: "number" },
+    });
+    const keys = storage.keys(actor);
+    const entries = storage.entries(actor);
+    expect(actor.enumerations).toBe(0);
+    expect(actor.reads).toBe(0);
+    expect(keys.next()).toEqual({ value: "first", done: false });
+    expect([...keys]).toEqual(["second"]);
+    expect(keys.next()).toEqual({ value: undefined, done: true });
+    expect(actor.reads).toBe(0);
+    expect(entries.next()).toEqual({ value: ["first", 1], done: false });
+    expect(actor.reads).toBe(1);
+    expect([...entries]).toEqual([["second", 2]]);
+    expect(actor.reads).toBe(2);
+    expect(entries.next()).toEqual({ value: undefined, done: true });
   });
 
   it("accepts reusable schemas and vector-valued properties", () => {
@@ -323,6 +354,23 @@ describe("SerializedStorage", () => {
     storage.delete(actor, "profile");
     expect(storage.get(actor, "profile")).toBeUndefined();
     expect(storage.get(actor.reload(), "profile")).toBeUndefined();
+  });
+
+  it("iterates stored keys and skips malformed serialized entries", () => {
+    const prefix = storageId("serialized-iterators");
+    const actor = new MockActor(
+      new Map([
+        [`__${prefix}|broken`, "invalid JSON"],
+        ["unrelated", '{"id":"unrelated"}'],
+        [`__${prefix}|valid`, '{"id":"A"}'],
+      ]),
+    );
+    const storage = new SerializedStorage<Item>(prefix);
+    expect([...storage.keys(actor)]).toEqual(["broken", "valid"]);
+    expect([...storage.entries(actor)]).toEqual([["valid", { id: "A" }]]);
+    expect([...storage.keys(actor)]).toEqual(["valid"]);
+    expectTypeOf(storage.keys(actor)).toEqualTypeOf<IterableIterator<string>>();
+    expectTypeOf(storage.entries(actor)).toEqualTypeOf<IterableIterator<[string, Item]>>();
   });
 });
 

@@ -101,25 +101,21 @@ abstract class MapStorage<T, K extends string = string> extends BaseStorage<
     }
     return actorCache.get(key);
   }
-  keys(actor: Actor): K[] {
+  *keys(actor: Actor): IterableIterator<K> {
     const prefix = this.getActorPrefix();
-    const out: K[] = [];
     for (const id of actor.getDynamicPropertyIds()) {
       if (id.startsWith(prefix)) {
-        out.push(id.slice(prefix.length) as K);
+        yield id.slice(prefix.length) as K;
       }
     }
-    return out;
   }
-  entries(actor: Actor): Array<[K, T]> {
-    const out: Array<[K, T]> = [];
+  *entries(actor: Actor): IterableIterator<[K, T]> {
     for (const key of this.keys(actor)) {
       const value = this.get(actor, key);
       if (value !== undefined) {
-        out.push([key, value]);
+        yield [key, value];
       }
     }
-    return out;
   }
   abstract set(actor: Actor, key: K, value: T): void;
 }
