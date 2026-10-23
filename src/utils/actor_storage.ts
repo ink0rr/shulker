@@ -1,14 +1,49 @@
-import { type Entity } from "@minecraft/server";
+import { type Entity, type Vector3 } from "@minecraft/server";
 
 type Actor = Pick<
   Entity,
   "getDynamicProperty" | "setDynamicProperty" | "getDynamicPropertyIds"
 >;
 
-type StorageValue = ReturnType<typeof Entity.prototype.getDynamicProperty>;
-type StorageSchema<T, K extends string> = [T] extends [StorageValue]
-  ? Record<K, T>
-  : T;
+type StorageValue = Exclude<
+  ReturnType<Entity["getDynamicProperty"]>,
+  undefined
+>;
+type StorageTypes = {
+  string: string;
+  number: number;
+  boolean: boolean;
+  vector3: Vector3;
+};
+export type ActorStorageProperty = {
+  [T in keyof StorageTypes]: { type: T; default?: StorageTypes[T] };
+}[keyof StorageTypes];
+export type ActorStorageSchema = Record<string, ActorStorageProperty>;
+type StorageValues<S extends ActorStorageSchema> = {
+  [K in keyof S]: StorageTypes[S[K]["type"]];
+};
+type StorageRead<P extends ActorStorageProperty> =
+  | StorageTypes[P["type"]]
+  | (P extends { default: StorageValue } ? never : undefined);
+
+function matchesStorageType(
+  type: keyof StorageTypes,
+  value: unknown,
+): value is StorageValue {
+  if (type !== "vector3") {
+    return typeof value === type;
+  }
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "x" in value &&
+    typeof value.x === "number" &&
+    "y" in value &&
+    typeof value.y === "number" &&
+    "z" in value &&
+    typeof value.z === "number"
+  );
+}
 
 abstract class BaseStorage<
   T,
@@ -91,55 +126,88 @@ abstract class MapStorage<T, K extends string = string> extends BaseStorage<
 
 /**
  * Storage for dynamic properties on actors.
- * @example
- * ```ts
- * const storage = new ActorStorage<boolean>("myStorage");
- * storage.set(actor, "myFlag", true);
- * const value = storage.get(actor, "myFlag"); // true
- * const typedStorage = new ActorStorage<{ name: string; location: Vector3 }>("myTypedStorage");
- * typedStorage.set(actor, "name", "Test");
- * typedStorage.set(actor, "location", { x: 0, y: 64, z: 0 });
- * const name = typedStorage.get(actor, "name"); // "Test"
- * const location = typedStorage.get(actor, "location"); // { x: 0, y: 64, z: 0 }
- * ```
  */
 export class ActorStorage<
-  T extends StorageValue | { [P in keyof T]-?: StorageValue } = StorageValue,
-  K extends string = string,
-> extends MapStorage<
-  StorageSchema<T, K>[keyof StorageSchema<T, K>],
-  keyof StorageSchema<T, K> & string
-> {
-  protected override loadCache(
-    actor: Actor,
-    key: keyof StorageSchema<T, K> & string,
-  ): void {
-    const actorKey = this.getActorKey(key);
-    const value = actor.getDynamicProperty(actorKey);
+  const S extends ActorStorageSchema,
+> extends MapStorage<StorageValues<S>[keyof S], keyof S & string> {
+  constructor(
+    prefix: string,
+    private readonly schema: S,
+  ) {
+    for (const key in schema) {
+      const property = schema[key];
+      if (
+        !property ||
+        (property.type !== "string" &&
+          property.type !== "number" &&
+          property.type !== "boolean" &&
+          property.type !== "vector3")
+      ) {
+        throw new TypeError(`Invalid storage type for "${key}".`);
+      }
+      if (
+        property.default !== undefined &&
+        !matchesStorageType(property.type, property.default)
+      ) {
+        throw new TypeError(
+          `Invalid default for "${key}": expected ${property.type}.`,
+        );
+      }
+    }
+    super(prefix);
+  }
+  private getProperty<P extends keyof S & string>(key: P): S[P] {
+    if (!Object.prototype.hasOwnProperty.call(this.schema, key)) {
+      throw new Error(`Unknown storage key "${key}".`);
+    }
+    return this.schema[key];
+  }
+  protected override loadCache(actor: Actor, key: keyof S & string): void {
+    const property = this.getProperty(key);
+    let value = actor.getDynamicProperty(this.getActorKey(key));
+    if (value !== undefined && !matchesStorageType(property.type, value)) {
+      throw new TypeError(
+        `Invalid value for "${key}": expected ${property.type}.`,
+      );
+    }
+    if (value === undefined) {
+      value = property.default;
+      if (property.type === "vector3" && property.default !== undefined) {
+        const { x, y, z } = property.default;
+        value = { x, y, z };
+      }
+    }
     this.cache
       .get(actor)!
-      .set(
-        key,
-        value as StorageSchema<T, K>[keyof StorageSchema<T, K>] | undefined,
-      );
+      .set(key, value as StorageValues<S>[keyof S] | undefined);
   }
-  override get<P extends keyof StorageSchema<T, K> & string>(
+  override get<P extends keyof S & string>(
     actor: Actor,
     key: P,
-  ): StorageSchema<T, K>[P] | undefined {
-    return super.get(actor, key) as StorageSchema<T, K>[P] | undefined;
+  ): StorageRead<S[P]> {
+    this.getProperty(key);
+    return super.get(actor, key) as StorageRead<S[P]>;
   }
-  override set<P extends keyof StorageSchema<T, K> & string>(
+  override set<P extends keyof S & string>(
     actor: Actor,
     key: P,
-    value: StorageSchema<T, K>[P],
+    value: StorageValues<S>[P],
   ): void {
-    const actorKey = this.getActorKey(key);
-    actor.setDynamicProperty(actorKey, value as StorageValue);
+    const property = this.getProperty(key);
+    if (!matchesStorageType(property.type, value)) {
+      throw new TypeError(
+        `Invalid value for "${key}": expected ${property.type}.`,
+      );
+    }
+    actor.setDynamicProperty(this.getActorKey(key), value);
     if (!this.cache.has(actor)) {
       this.cache.set(actor, new Map());
     }
     this.cache.get(actor)!.set(key, value);
+  }
+  override delete(actor: Actor, key: keyof S & string): void {
+    this.getProperty(key);
+    super.delete(actor, key);
   }
 }
 
@@ -298,7 +366,7 @@ export class ArrayStorage<T extends object> extends BaseStorage<
     if (!this.cache.has(actor)) {
       const result: T[] = [];
       let malformed = 0;
-      for (let i = 0; ; i++) {
+      for (let i = 0;; i++) {
         const key = this.getActorKey(i);
         const value = actor.getDynamicProperty(key);
         if (typeof value !== "string") {

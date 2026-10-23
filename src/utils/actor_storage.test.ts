@@ -2,6 +2,7 @@ import { type Vector3 } from "@minecraft/server";
 import { describe, expect, expectTypeOf, it } from "bun:test";
 import {
   ActorStorage,
+  type ActorStorageSchema,
   ArrayStorage,
   SerializedStorage,
 } from "./actor_storage.js";
@@ -68,153 +69,240 @@ const setupArray = (
   return { actor, storage, prefix };
 };
 
-describe("PrimitiveStorage", () => {
-  it.each([false, 0, ""] as const)("persists and caches %j", (value) => {
+describe("ActorStorage runtime schema", () => {
+  it("infers values from descriptors and preserves false, zero, and empty strings", () => {
     const actor = new MockActor();
-    const storage = new ActorStorage<string | number | boolean>(
-      storageId("values"),
-    );
-    storage.set(actor, "value", value);
-    expect(storage.get(actor, "value")).toBe(value);
-    expect(storage.get(actor.reload(), "value")).toBe(value);
-  });
-
-  it("stores vectors", () => {
-    const actor = new MockActor();
-    const storage = new ActorStorage<Vector3>(storageId("vectors"));
-    const value = { x: 1, y: 64, z: -2 };
-    storage.set(actor, "position", value);
-    expectTypeOf(storage.get(actor, "position")).toEqualTypeOf<
-      Vector3 | undefined
+    const storage = new ActorStorage(storageId("values"), {
+      active: { type: "boolean" },
+      amount: { type: "number" },
+      name: { type: "string" },
+    });
+    storage.set(actor, "active", false);
+    storage.set(actor, "amount", 0);
+    storage.set(actor, "name", "");
+    const reloaded = actor.reload();
+    expect(storage.get(reloaded, "active")).toBe(false);
+    expect(storage.get(reloaded, "amount")).toBe(0);
+    expect(storage.get(reloaded, "name")).toBe("");
+    expectTypeOf(storage.get(actor, "active")).toEqualTypeOf<boolean | undefined>();
+    expectTypeOf(storage.get(actor, "amount")).toEqualTypeOf<number | undefined>();
+    expectTypeOf(storage.get(actor, "name")).toEqualTypeOf<string | undefined>();
+    expectTypeOf<Parameters<typeof storage.set<"active">>[2]>().toEqualTypeOf<boolean>();
+    expectTypeOf<Parameters<typeof storage.set<"amount">>[2]>().toEqualTypeOf<number>();
+    expectTypeOf<Parameters<typeof storage.set<"name">>[2]>().toEqualTypeOf<string>();
+    expectTypeOf<Parameters<typeof storage.get>[1]>().toEqualTypeOf<"active" | "amount" | "name">();
+    expectTypeOf<Parameters<typeof storage.delete>[1]>().toEqualTypeOf<
+      "active" | "amount" | "name"
     >();
-    expect(storage.get(actor.reload(), "position")).toEqual(value);
   });
 
-  it("returns undefined for missing keys and lists only stored entries", () => {
+  it("returns defaults without persisting them and caches fallback values", () => {
     const actor = new MockActor();
-    const storage = new ActorStorage<number>(storageId("values"));
-    expect(storage.get(actor, "missing")).toBeUndefined();
-    storage.set(actor, "first", 1);
-    storage.set(actor, "second", 2);
-    expect(storage.keys(actor)).toEqual(["first", "second"]);
-    expect(storage.entries(actor)).toEqual([
-      ["first", 1],
-      ["second", 2],
-    ]);
-    storage.delete(actor, "first");
-    expect(storage.get(actor, "first")).toBeUndefined();
-    expect(storage.get(actor.reload(), "first")).toBeUndefined();
-    expect(storage.keys(actor)).toEqual(["second"]);
+    const storage = new ActorStorage(storageId("defaults"), {
+      active: { type: "boolean", default: false },
+      amount: { type: "number", default: 0 },
+      name: { type: "string", default: "" },
+    });
+    expect(storage.get(actor, "active")).toBe(false);
+    expect(storage.get(actor, "amount")).toBe(0);
+    expect(storage.get(actor, "name")).toBe("");
+    expectTypeOf(storage.get(actor, "active")).toEqualTypeOf<boolean>();
+    expectTypeOf(storage.get(actor, "amount")).toEqualTypeOf<number>();
+    expectTypeOf(storage.get(actor, "name")).toEqualTypeOf<string>();
+    const reads = actor.reads;
+    expect(storage.get(actor, "amount")).toBe(0);
+    expect(actor.reads).toBe(reads);
+    expect(actor.writeAttempts).toBe(0);
+    expect(actor.getDynamicPropertyIds()).toEqual([]);
+    storage.set(actor, "active", true);
+    storage.set(actor, "amount", 25);
+    storage.set(actor, "name", "Alex");
+    expect(storage.get(actor, "active")).toBe(true);
+    expect(storage.get(actor, "amount")).toBe(25);
+    expect(storage.get(actor, "name")).toBe("Alex");
+  });
+
+  it("allows omitted defaults and infers undefined only for those keys", () => {
+    const actor = new MockActor();
+    const storage = new ActorStorage(storageId("optional"), {
+      damage: { type: "number", default: 10 },
+      name: { type: "string" },
+      active: { type: "boolean", default: undefined },
+    });
+    expect(storage.get(actor, "damage")).toBe(10);
+    expect(storage.get(actor, "name")).toBeUndefined();
+    expect(storage.get(actor, "active")).toBeUndefined();
+    expectTypeOf(storage.get(actor, "damage")).toEqualTypeOf<number>();
+    expectTypeOf(storage.get(actor, "name")).toEqualTypeOf<string | undefined>();
+    expectTypeOf(storage.get(actor, "active")).toEqualTypeOf<boolean | undefined>();
+    expect(actor.writeAttempts).toBe(0);
+  });
+
+  it("preserves stored false, zero, and empty strings over nonempty defaults", () => {
+    const actor = new MockActor();
+    const storage = new ActorStorage(storageId("overrides"), {
+      active: { type: "boolean", default: true },
+      amount: { type: "number", default: 10 },
+      name: { type: "string", default: "Unnamed" },
+    });
+    storage.set(actor, "active", false);
+    storage.set(actor, "amount", 0);
+    storage.set(actor, "name", "");
+    const reloaded = actor.reload();
+    expect(storage.get(reloaded, "active")).toBe(false);
+    expect(storage.get(reloaded, "amount")).toBe(0);
+    expect(storage.get(reloaded, "name")).toBe("");
+  });
+
+  it("restores defaults after delete and clear", () => {
+    const actor = new MockActor();
+    const storage = new ActorStorage(storageId("reset"), {
+      damage: { type: "number", default: 10 },
+      name: { type: "string" },
+      active: { type: "boolean", default: false },
+    });
+    storage.set(actor, "damage", 25);
+    storage.set(actor, "name", "Alex");
+    storage.set(actor, "active", true);
+    storage.delete(actor, "damage");
+    expect(storage.get(actor, "damage")).toBe(10);
+    expect(storage.get(actor.reload(), "damage")).toBe(10);
     storage.clear(actor);
+    expect(storage.get(actor, "damage")).toBe(10);
+    expect(storage.get(actor, "active")).toBe(false);
+    expect(storage.get(actor, "name")).toBeUndefined();
+    expect(actor.getDynamicPropertyIds()).toEqual([]);
+  });
+
+  it("lists stored overrides without materializing default properties", () => {
+    const actor = new MockActor();
+    const storage = new ActorStorage(storageId("entries"), {
+      first: { type: "number", default: 10 },
+      second: { type: "number" },
+    });
+    expect(storage.get(actor, "first")).toBe(10);
+    expect(storage.keys(actor)).toEqual([]);
     expect(storage.entries(actor)).toEqual([]);
+    storage.set(actor, "second", 2);
+    expect(storage.keys(actor)).toEqual(["second"]);
+    expect(storage.entries(actor)).toEqual([["second", 2]]);
+    expectTypeOf(storage.keys(actor)).toEqualTypeOf<Array<"first" | "second">>();
+    storage.delete(actor, "second");
+    expect(storage.entries(actor)).toEqual([]);
+    expect(storage.get(actor.reload(), "second")).toBeUndefined();
+  });
+
+  it("accepts reusable schemas and vector-valued properties", () => {
+    const schema = {
+      position: { type: "vector3" },
+      damage: { type: "number", default: 10 },
+    } satisfies ActorStorageSchema;
+    const actor = new MockActor();
+    const storage = new ActorStorage(storageId("vectors"), schema);
+    const position = { x: 1, y: 64, z: -2 };
+    storage.set(actor, "position", position);
+    expectTypeOf(storage.get(actor, "position")).toEqualTypeOf<Vector3 | undefined>();
+    expectTypeOf(storage.get(actor, "damage")).toEqualTypeOf<number>();
+    const reloaded = actor.reload();
+    expect(storage.get(reloaded, "position")).toEqual(position);
+    expect(storage.get(reloaded, "damage")).toBe(10);
+  });
+
+  it("isolates vector defaults between actors and the schema", () => {
+    const schema = {
+      position: { type: "vector3", default: { x: 1, y: 64, z: -2 } },
+    } satisfies ActorStorageSchema;
+    const actor = new MockActor();
+    const otherActor = new MockActor();
+    const storage = new ActorStorage(storageId("vector-defaults"), schema);
+    const position = storage.get(actor, "position");
+    expectTypeOf(position).toEqualTypeOf<Vector3>();
+    expect(position).toEqual(schema.position.default);
+    position.x = 99;
+    expect(schema.position.default.x).toBe(1);
+    expect(storage.get(otherActor, "position").x).toBe(1);
+    expect(actor.writeAttempts).toBe(0);
+    expect(otherActor.writeAttempts).toBe(0);
   });
 
   it("keeps actors and different storage IDs independent", () => {
     const actor = new MockActor();
     const otherActor = new MockActor();
-    const first = new ActorStorage<number>(storageId("first"));
-    const second = new ActorStorage<number>(storageId("second"));
+    const first = new ActorStorage(storageId("first"), {
+      value: { type: "number", default: 0 },
+    });
+    const second = new ActorStorage(storageId("second"), {
+      value: { type: "number", default: 10 },
+    });
     first.set(actor, "value", 1);
     first.set(otherActor, "value", 2);
     second.set(actor, "value", 3);
     first.clear(actor);
-    expect(first.get(actor, "value")).toBeUndefined();
+    expect(first.get(actor, "value")).toBe(0);
     expect(first.get(otherActor, "value")).toBe(2);
     expect(second.get(actor, "value")).toBe(3);
   });
-});
 
-describe("PrimitiveStorage property schemas", () => {
-  it("stores each property with its declared type", () => {
+  it("rejects invalid runtime keys and values before writing properties", () => {
     const actor = new MockActor();
-    const storage = new ActorStorage<{
-      name: string;
-      count: number;
-      active: boolean;
-    }>(storageId("typed"));
-    storage.set(actor, "name", "Alex");
-    storage.set(actor, "count", 0);
-    storage.set(actor, "active", false);
-    const name: string | undefined = storage.get(actor, "name");
-    const count: number | undefined = storage.get(actor, "count");
-    const active: boolean | undefined = storage.get(actor, "active");
-    expectTypeOf(storage.get(actor, "name")).toEqualTypeOf<
-      string | undefined
-    >();
-    expectTypeOf(storage.get(actor, "count")).toEqualTypeOf<
-      number | undefined
-    >();
-    expectTypeOf(storage.get(actor, "active")).toEqualTypeOf<
-      boolean | undefined
-    >();
-    expectTypeOf<
-      Parameters<typeof storage.set<"name">>[2]
-    >().toEqualTypeOf<string>();
-    expectTypeOf<
-      Parameters<typeof storage.set<"count">>[2]
-    >().toEqualTypeOf<number>();
-    expectTypeOf<
-      Parameters<typeof storage.set<"active">>[2]
-    >().toEqualTypeOf<boolean>();
-    expectTypeOf<Parameters<typeof storage.get>[1]>().toEqualTypeOf<
-      "name" | "count" | "active"
-    >();
-    expect([name, count, active]).toEqual(["Alex", 0, false]);
-    const reloaded = actor.reload();
-    expect(storage.get(reloaded, "count")).toBe(0);
-    expect(storage.get(reloaded, "active")).toBe(false);
+    const storage = new ActorStorage(storageId("validation"), {
+      amount: { type: "number" },
+      position: { type: "vector3" },
+    });
+    const unchecked = storage as unknown as {
+      get(actor: MockActor, key: string): unknown;
+      set(actor: MockActor, key: string, value: unknown): void;
+      delete(actor: MockActor, key: string): void;
+    };
+    expect(() => unchecked.set(actor, "amount", "wrong")).toThrow(TypeError);
+    expect(() => unchecked.set(actor, "position", null)).toThrow(TypeError);
+    expect(() => unchecked.set(actor, "position", { x: 1, y: 2 })).toThrow(TypeError);
+    expect(() => unchecked.set(actor, "position", { x: 1, y: "wrong", z: 3 })).toThrow(TypeError);
+    expect(() => unchecked.set(actor, "unknown", 1)).toThrow();
+    expect(() => unchecked.get(actor, "unknown")).toThrow();
+    expect(() => unchecked.delete(actor, "unknown")).toThrow();
+    expect(actor.writeAttempts).toBe(0);
   });
 
-  it("accepts interface schemas with vector-valued properties", () => {
-    interface Properties {
-      position: Vector3;
-      damage: number;
-    }
-    const actor = new MockActor();
-    const storage = new ActorStorage<Properties>(storageId("interface"));
-    const position = { x: 1, y: 64, z: -2 };
-    storage.set(actor, "position", position);
-    storage.set(actor, "damage", 10);
-    expectTypeOf(storage.get(actor, "position")).toEqualTypeOf<
-      Vector3 | undefined
-    >();
-    expectTypeOf(storage.get(actor, "damage")).toEqualTypeOf<
-      number | undefined
-    >();
-    expectTypeOf<Parameters<typeof storage.delete>[1]>().toEqualTypeOf<
-      "position" | "damage"
-    >();
-    expectTypeOf(storage.keys(actor)).toEqualTypeOf<
-      Array<"position" | "damage">
-    >();
-    const reloaded = actor.reload();
-    expect(storage.get(reloaded, "position")).toEqual(position);
-    expect(storage.get(reloaded, "damage")).toBe(10);
-    storage.delete(actor, "damage");
-    expect(storage.entries(actor)).toEqual([["position", position]]);
-    expect(storage.get(actor.reload(), "damage")).toBeUndefined();
+  it("rejects invalid defaults before reserving the storage ID", () => {
+    const prefix = storageId("bad-default");
+    const invalid = {
+      amount: { type: "number", default: "wrong" },
+    } as unknown as ActorStorageSchema;
+    expect(() => new ActorStorage(prefix, invalid)).toThrow(TypeError);
+    const storage = new ActorStorage(prefix, { amount: { type: "number", default: 10 } });
+    expect(storage.get(new MockActor(), "amount")).toBe(10);
   });
 
-  it("preserves homogeneous unions and explicit key restrictions", () => {
+  it("rejects mismatched stored values without replacing them with defaults", () => {
+    const prefix = storageId("stored-validation");
+    const actor = new MockActor(new Map([[`__${prefix}|amount`, "wrong"]]));
+    const storage = new ActorStorage(prefix, {
+      amount: { type: "number", default: 10 },
+    });
+    expect(() => storage.get(actor, "amount")).toThrow(TypeError);
+    expect(() => storage.get(actor, "amount")).toThrow(TypeError);
+    expect(actor.getDynamicProperty(`__${prefix}|amount`)).toBe("wrong");
+    expect(actor.writeAttempts).toBe(0);
+    storage.set(actor, "amount", 20);
+    expect(storage.get(actor, "amount")).toBe(20);
+  });
+
+  it("rejects unsupported descriptor types", () => {
+    const invalid = { value: { type: "object" } } as unknown as ActorStorageSchema;
+    expect(() => new ActorStorage(storageId("bad-type"), invalid)).toThrow(TypeError);
+  });
+
+  it("keeps the previous value when a property write is rejected", () => {
     const actor = new MockActor();
-    const storage = new ActorStorage<number | boolean, "damage" | "enabled">(
-      storageId("restricted"),
-    );
-    storage.set(actor, "damage", 10);
-    storage.set(actor, "enabled", false);
-    expectTypeOf(storage.get(actor, "damage")).toEqualTypeOf<
-      number | boolean | undefined
-    >();
-    expectTypeOf<Parameters<typeof storage.set<"enabled">>[2]>().toEqualTypeOf<
-      number | boolean
-    >();
-    expectTypeOf<Parameters<typeof storage.get>[1]>().toEqualTypeOf<
-      "damage" | "enabled"
-    >();
-    expectTypeOf(storage.keys(actor)).toEqualTypeOf<
-      Array<"damage" | "enabled">
-    >();
-    expect(storage.get(actor.reload(), "enabled")).toBe(false);
+    const storage = new ActorStorage(storageId("write-failure"), {
+      amount: { type: "number", default: 10 },
+    });
+    storage.set(actor, "amount", 20);
+    actor.rejectWriteAfter();
+    expect(() => storage.set(actor, "amount", 30)).toThrow("Write rejected");
+    expect(storage.get(actor, "amount")).toBe(20);
+    expect(storage.get(actor.reload(), "amount")).toBe(20);
   });
 });
 
