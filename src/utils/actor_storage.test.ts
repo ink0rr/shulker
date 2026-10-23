@@ -1,5 +1,14 @@
-import { type Vector3 } from "@minecraft/server";
-import { describe, expect, expectTypeOf, it } from "bun:test";
+import { type Vector3, system } from "@minecraft/server";
+import {
+  type Mock,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  spyOn,
+} from "bun:test";
 import {
   ActorStorage,
   type ActorStorageSchema,
@@ -20,6 +29,7 @@ class MockActor {
   enumerations = 0;
   writeAttempts = 0;
   failAt = Infinity;
+  readOnly = false;
 
   constructor(private readonly properties = new Map<string, PropertyValue>()) {}
 
@@ -33,6 +43,9 @@ class MockActor {
   }
   setDynamicProperty(key: string, value?: PropertyValue): void {
     this.writeAttempts++;
+    if (this.readOnly) {
+      throw new Error("Read-only execution");
+    }
     if (this.writeAttempts === this.failAt) {
       throw new Error("Write rejected");
     }
@@ -338,6 +351,24 @@ describe("ActorStorage runtime schema", () => {
 });
 
 describe("SerializedStorage", () => {
+  let pendingRuns: Array<() => void>;
+  let run: Mock<typeof system.run>;
+
+  beforeEach(() => {
+    pendingRuns = [];
+    run = spyOn(system, "run").mockImplementation((callback) => {
+      pendingRuns.push(callback);
+      return pendingRuns.length;
+    });
+  });
+  afterEach(() => run.mockRestore());
+
+  const flushRuns = (): void => {
+    for (const callback of pendingRuns.splice(0)) {
+      callback();
+    }
+  };
+
   it("persists nested JSON objects and caches loaded values", () => {
     const actor = new MockActor();
     const storage = new SerializedStorage<{ name: string; tags: string[] }>(
@@ -368,9 +399,58 @@ describe("SerializedStorage", () => {
     const storage = new SerializedStorage<Item>(prefix);
     expect([...storage.keys(actor)]).toEqual(["broken", "valid"]);
     expect([...storage.entries(actor)]).toEqual([["valid", { id: "A" }]]);
+    expect([...storage.keys(actor)]).toEqual(["broken", "valid"]);
+    flushRuns();
     expect([...storage.keys(actor)]).toEqual(["valid"]);
     expectTypeOf(storage.keys(actor)).toEqualTypeOf<IterableIterator<string>>();
     expectTypeOf(storage.entries(actor)).toEqualTypeOf<IterableIterator<[string, Item]>>();
+  });
+
+  it.each<PropertyValue>(["invalid JSON", 42, false, { x: 1, y: 2, z: 3 }])(
+    "defers cleanup of malformed value %j until writable execution",
+    (value) => {
+      const prefix = storageId("readonly-json");
+      const actorKey = `__${prefix}|item`;
+      const actor = new MockActor(new Map([[actorKey, value]]));
+      const storage = new SerializedStorage<Item>(prefix);
+      actor.readOnly = true;
+      expect(storage.get(actor, "item")).toBeUndefined();
+      expect([...storage.entries(actor)]).toEqual([]);
+      expect(actor.writeAttempts).toBe(0);
+      expect(actor.getDynamicProperty(actorKey)).toEqual(value);
+      actor.readOnly = false;
+      flushRuns();
+      expect(actor.getDynamicProperty(actorKey)).toBeUndefined();
+      expect([...storage.keys(actor)]).toEqual([]);
+    },
+  );
+
+  it.each(["storage", "actor"])(
+    "preserves a replacement written through %s before cleanup runs",
+    (writer) => {
+      const prefix = storageId("replacement-json");
+      const actorKey = `__${prefix}|item`;
+      const actor = new MockActor(new Map([[actorKey, "invalid JSON"]]));
+      const storage = new SerializedStorage<Item>(prefix);
+      expect(storage.get(actor, "item")).toBeUndefined();
+      if (writer === "storage") {
+        storage.set(actor, "item", { id: "replacement" });
+      } else {
+        actor.setDynamicProperty(actorKey, '{"id":"replacement"}');
+      }
+      flushRuns();
+      expect(storage.get(actor, "item")).toEqual({ id: "replacement" });
+      expect(storage.get(actor.reload(), "item")).toEqual({ id: "replacement" });
+    },
+  );
+
+  it("does not write when reading an absent property", () => {
+    const actor = new MockActor();
+    const storage = new SerializedStorage<Item>(storageId("missing-json"));
+    actor.rejectWriteAfter();
+    expect(storage.get(actor, "missing")).toBeUndefined();
+    flushRuns();
+    expect(actor.writeAttempts).toBe(0);
   });
 });
 

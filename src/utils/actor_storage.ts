@@ -1,4 +1,4 @@
-import { type Entity, type Vector3 } from "@minecraft/server";
+import { type Entity, type Vector3, system } from "@minecraft/server";
 
 type Actor = Pick<
   Entity,
@@ -239,7 +239,17 @@ export class SerializedStorage<
     }
     if (!flag) {
       this.cache.get(actor)!.set(key, undefined);
-      actor.setDynamicProperty(actorKey, undefined);
+      if (value !== undefined) {
+        system.run(() => {
+          const currentValue = actor.getDynamicProperty(actorKey);
+          if (
+            currentValue !== undefined &&
+            (currentValue === value || typeof currentValue !== "string")
+          ) {
+            actor.setDynamicProperty(actorKey, undefined);
+          }
+        });
+      }
     }
   }
   override set(actor: Actor, key: K, value: T): void {
@@ -362,7 +372,7 @@ export class ArrayStorage<T extends object> extends BaseStorage<
     if (!this.cache.has(actor)) {
       const result: T[] = [];
       let malformed = 0;
-      for (let i = 0;; i++) {
+      for (let i = 0; ; i++) {
         const key = this.getActorKey(i);
         const value = actor.getDynamicProperty(key);
         if (typeof value !== "string") {
