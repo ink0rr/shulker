@@ -1,35 +1,34 @@
 import { type Entity, type Vector3, system } from "@minecraft/server";
 
-type Actor = Pick<
-  Entity,
-  "getDynamicProperty" | "setDynamicProperty" | "getDynamicPropertyIds"
->;
+type Actor = Pick<Entity, "getDynamicProperty" | "setDynamicProperty" | "getDynamicPropertyIds">;
 
-type StorageValue = Exclude<
-  ReturnType<Entity["getDynamicProperty"]>,
-  undefined
->;
+type StorageValue = Exclude<ReturnType<Entity["getDynamicProperty"]>, undefined>;
+
 type StorageTypes = {
   string: string;
   number: number;
   boolean: boolean;
   vector3: Vector3;
 };
+
 export type ActorStorageProperty = {
-  [T in keyof StorageTypes]: { type: T; default?: StorageTypes[T] };
+  [T in keyof StorageTypes]: {
+    type: T;
+    default?: StorageTypes[T];
+  };
 }[keyof StorageTypes];
+
 export type ActorStorageSchema = Record<string, ActorStorageProperty>;
+
 type StorageValues<S extends ActorStorageSchema> = {
   [K in keyof S]: StorageTypes[S[K]["type"]];
 };
+
 type StorageRead<P extends ActorStorageProperty> =
   | StorageTypes[P["type"]]
   | (P extends { default: StorageValue } ? never : undefined);
 
-function matchesStorageType(
-  type: keyof StorageTypes,
-  value: unknown,
-): value is StorageValue {
+function matchesStorageType(type: keyof StorageTypes, value: unknown): value is StorageValue {
   if (type !== "vector3") {
     return typeof value === type;
   }
@@ -45,11 +44,7 @@ function matchesStorageType(
   );
 }
 
-abstract class BaseStorage<
-  T,
-  K extends string = string,
-  U = Map<K, T | undefined>,
-> {
+abstract class BaseStorage<T, K extends string = string, U = Map<K, T | undefined>> {
   private static readonly ids = new Set<string>();
   protected cache = new WeakMap<Actor, U>();
   constructor(protected readonly prefix: string) {
@@ -72,10 +67,7 @@ abstract class BaseStorage<
   }
 }
 
-abstract class MapStorage<T, K extends string = string> extends BaseStorage<
-  T,
-  K
-> {
+abstract class MapStorage<T, K extends string = string> extends BaseStorage<T, K> {
   protected abstract loadCache(actor: Actor, key: K): void;
   protected getActorKey(key: K): string {
     return `${this.getActorPrefix()}${key}`;
@@ -123,13 +115,9 @@ abstract class MapStorage<T, K extends string = string> extends BaseStorage<
 /**
  * Storage for dynamic properties on actors.
  */
-export class ActorStorage<
-  const S extends ActorStorageSchema,
-> extends MapStorage<StorageValues<S>[keyof S], keyof S & string> {
-  constructor(
-    prefix: string,
-    private readonly schema: S,
-  ) {
+export class ActorStorage<const S extends ActorStorageSchema>
+  extends MapStorage<StorageValues<S>[keyof S], keyof S & string> {
+  constructor(prefix: string, private readonly schema: S) {
     for (const key in schema) {
       const property = schema[key];
       if (
@@ -177,18 +165,11 @@ export class ActorStorage<
       .get(actor)!
       .set(key, value as StorageValues<S>[keyof S] | undefined);
   }
-  override get<P extends keyof S & string>(
-    actor: Actor,
-    key: P,
-  ): StorageRead<S[P]> {
+  override get<P extends keyof S & string>(actor: Actor, key: P): StorageRead<S[P]> {
     this.getProperty(key);
     return super.get(actor, key) as StorageRead<S[P]>;
   }
-  override set<P extends keyof S & string>(
-    actor: Actor,
-    key: P,
-    value: StorageValues<S>[P],
-  ): void {
+  override set<P extends keyof S & string>(actor: Actor, key: P, value: StorageValues<S>[P]): void {
     const property = this.getProperty(key);
     if (!matchesStorageType(property.type, value)) {
       throw new TypeError(
@@ -222,10 +203,8 @@ export class ActorStorage<
  * const retrievedData = storage.get(actor, "dataKey"); // { name: "Test", location: { x: 0, y: 64, z: 0 } }
  * ```
  */
-export class SerializedStorage<
-  T extends object,
-  K extends string = string,
-> extends MapStorage<T, K> {
+export class SerializedStorage<T extends object, K extends string = string>
+  extends MapStorage<T, K> {
   protected override loadCache(actor: Actor, key: K): void {
     const actorKey = this.getActorKey(key);
     const value = actor.getDynamicProperty(actorKey);
@@ -279,11 +258,7 @@ export class SerializedStorage<
  * const updatedItems = storage.get(actor); // [{ id: "item2", quantity: 5 }]
  * ```
  */
-export class ArrayStorage<T extends object> extends BaseStorage<
-  T,
-  string,
-  T[]
-> {
+export class ArrayStorage<T extends object> extends BaseStorage<T, string, T[]> {
   protected override getActorPrefix(): string {
     return `__${this.prefix}|index`;
   }
@@ -336,11 +311,7 @@ export class ArrayStorage<T extends object> extends BaseStorage<
       }
     }
   }
-  update(
-    actor: Actor,
-    predicate: (item: T, array: T[]) => boolean,
-    value: T,
-  ): number {
+  update(actor: Actor, predicate: (item: T, array: T[]) => boolean, value: T): number {
     const arr = this.get(actor) as T[];
     let updatedCount = 0;
 
@@ -372,7 +343,7 @@ export class ArrayStorage<T extends object> extends BaseStorage<
     if (!this.cache.has(actor)) {
       const result: T[] = [];
       let malformed = 0;
-      for (let i = 0; ; i++) {
+      for (let i = 0;; i++) {
         const key = this.getActorKey(i);
         const value = actor.getDynamicProperty(key);
         if (typeof value !== "string") {
