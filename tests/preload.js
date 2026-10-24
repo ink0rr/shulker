@@ -9,6 +9,9 @@ mock.module("@minecraft/server", () => ({
     Up: "Up",
     West: "West",
   },
+  system: {
+    run: mock(() => 0),
+  },
   world: {
     sendMessage: mock((message) => message),
   },
